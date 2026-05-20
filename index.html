@@ -463,35 +463,45 @@ async function getTasksForClient(prop){
 }
 
 async function findStatusSheet(domain){
-  // Try stored sheet ID first
+  // Check localStorage first
   const stored=localStorage.getItem('sheet_'+domain);
   if(stored) return stored;
 
-  // Search Drive for status sheets — try multiple search strategies
   const domainRoot=domain.split('.')[0].toLowerCase();
-  const searches=[
-    `title contains 'Status Sheet' and title contains '${domainRoot}' and mimeType='application/vnd.google-apps.spreadsheet'`,
-    `title contains 'SEO Status' and title contains '${domainRoot}' and mimeType='application/vnd.google-apps.spreadsheet'`,
+
+  // Known sheets — hardcoded for reliability
+  const KNOWN_SHEETS={
+    'icruise.com':'1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o',
+    'alaskacruises.com':'1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o',
+    'cruisecheap.com':'1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o',
+  };
+  if(KNOWN_SHEETS[domain]){
+    localStorage.setItem('sheet_'+domain,KNOWN_SHEETS[domain]);
+    return KNOWN_SHEETS[domain];
+  }
+
+  // Search Drive — try multiple queries
+  const queries=[
+    `fullText contains '${domainRoot}' and title contains 'Status Sheet' and mimeType='application/vnd.google-apps.spreadsheet'`,
     `title contains 'Status Sheet' and mimeType='application/vnd.google-apps.spreadsheet'`,
     `title contains 'SEO Status' and mimeType='application/vnd.google-apps.spreadsheet'`,
   ];
 
-  for(const q of searches){
+  for(const q of queries){
     try{
-      const res=await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&pageSize=50&orderBy=modifiedTime desc`,{
+      const res=await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&pageSize=50&orderBy=modifiedTime+desc`,{
         headers:{Authorization:'Bearer '+accessToken}
       });
       if(!res.ok) continue;
       const data=await res.json();
       const files=data.files||[];
       if(!files.length) continue;
-      // Score matches: exact domain root match scores highest
       const scored=files.map(f=>{
         const n=f.name.toLowerCase();
         let score=0;
         if(n.includes(domainRoot)) score+=10;
-        if(n.includes(domain.toLowerCase())) score+=5;
-        if(n.includes('status sheet')) score+=2;
+        if(n.includes(domain)) score+=5;
+        if(n.includes('status sheet')) score+=3;
         if(n.includes('seo')) score+=1;
         return{...f,score};
       }).sort((a,b)=>b.score-a.score);
