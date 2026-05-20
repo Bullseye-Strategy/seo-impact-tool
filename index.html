@@ -840,6 +840,13 @@ async function renderWork(){
     document.getElementById('work-list').innerHTML='';
     return;
   }
+  // Debug: show tab breakdown
+  const tabCounts={};
+  tasks.forEach(t=>{const tab=t.tabName||'(no tab)';tabCounts[tab]=(tabCounts[tab]||0)+1;});
+  const debugHtml=`<div style="background:var(--bbg);border:1px solid #b5d4f4;border-radius:var(--r);padding:10px 14px;font-size:11px;color:var(--blue);margin-bottom:12px">
+    <strong>Debug — tabs loaded:</strong> ${Object.entries(tabCounts).map(([t,n])=>`${t} (${n})`).join(' · ')}
+  </div>`;
+  document.getElementById('work-list').innerHTML=debugHtml;
   renderWorkList(tasks);
 }
 
