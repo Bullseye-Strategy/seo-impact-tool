@@ -432,6 +432,8 @@ async function getTasksForClient(prop){
   if(clientTasks[prop]) return clientTasks[prop];
 
   const domain=cleanDomain(prop);
+  const domainRoot=domain.split('.')[0].toLowerCase();
+
   // Search Drive for a status sheet matching this domain
   const sheetId=await findStatusSheet(domain);
   if(!sheetId){
@@ -439,9 +441,25 @@ async function getTasksForClient(prop){
     return [];
   }
   clientSheets[prop]=sheetId;
-  const tasks=await readSheet(sheetId,domain);
-  clientTasks[prop]=tasks;
-  return tasks;
+  const allTasks=await readSheet(sheetId,domain);
+
+  // Filter tasks to only those belonging to this client
+  // Match by tab name containing the domain root, or task content if no tab info
+  const filtered=allTasks.filter(t=>{
+    if(!t.tabName) return true; // no tab info, show everything
+    const tab=t.tabName.toLowerCase();
+    // Exact domain root match in tab name
+    if(tab.includes(domainRoot)) return true;
+    // Handle common variations (e.g. "icruise" matches "iCruise/Alaska Cruises/Cruise Cheap" tab? No.)
+    // Only return true if the tab is specifically for this domain
+    return false;
+  });
+
+  // If filtering removed everything (tab names don't match any known pattern),
+  // fall back to showing all tasks from the sheet
+  const result=filtered.length>0?filtered:allTasks;
+  clientTasks[prop]=result;
+  return result;
 }
 
 async function findStatusSheet(domain){
@@ -488,7 +506,40 @@ async function findStatusSheet(domain){
 }
 
 async function readSheet(sheetId,domain){
-  // Try Sheets API first (needs spreadsheets.readonly scope)
+  // Step 1: get all sheet/tab names
+  let sheetNames=[];
+  try{
+    const meta=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?fields=sheets.properties.title`,{
+      headers:{Authorization:'Bearer '+accessToken}
+    });
+    if(meta.ok){
+      const md=await meta.json();
+      sheetNames=(md.sheets||[]).map(s=>s.properties.title);
+    }
+  }catch(e){}
+
+  // If we got tab names, fetch each one and combine rows
+  if(sheetNames.length>0){
+    const allTasks=[];
+    for(const name of sheetNames){
+      try{
+        const enc=encodeURIComponent(`'${name}'!A1:G500`);
+        const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${enc}?majorDimension=ROWS`,{
+          headers:{Authorization:'Bearer '+accessToken}
+        });
+        if(!res.ok) continue;
+        const data=await res.json();
+        const rows=data.values||[];
+        if(rows.length>1){
+          const tabTasks=parseSheetRows(rows,domain,sheetId,name);
+          allTasks.push(...tabTasks);
+        }
+      }catch(e){continue;}
+    }
+    if(allTasks.length>0) return allTasks;
+  }
+
+  // Fallback: single range fetch
   try{
     const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:G500?majorDimension=ROWS`,{
       headers:{Authorization:'Bearer '+accessToken}
@@ -499,7 +550,8 @@ async function readSheet(sheetId,domain){
       if(rows.length>1) return parseSheetRows(rows,domain,sheetId);
     }
   }catch(e){}
-  // Fallback: export as CSV via Drive API
+
+  // Last resort: CSV export (first tab only)
   try{
     const res=await fetch(`https://www.googleapis.com/drive/v3/files/${sheetId}/export?mimeType=text/csv`,{
       headers:{Authorization:'Bearer '+accessToken}
@@ -507,7 +559,6 @@ async function readSheet(sheetId,domain){
     if(!res.ok) return [];
     const csv=await res.text();
     const rows=csv.split('\n').map(line=>{
-      // Simple CSV parse
       const result=[];let cur='';let inQ=false;
       for(const ch of line){
         if(ch==='"'){inQ=!inQ;}
@@ -521,7 +572,7 @@ async function readSheet(sheetId,domain){
   }catch(e){return [];}
 }
 
-function parseSheetRows(rows,domain,sheetId){
+function parseSheetRows(rows,domain,sheetId,tabName=''){
   // Remove completely empty rows and rows that are just dividers
   rows=rows.filter(r=>r&&r.some(c=>c&&c.trim()));
   const tasks=[];
@@ -574,13 +625,14 @@ function parseSheetRows(rows,domain,sheetId){
 
     tasks.push({
       task:taskName,
-      link,
+      link:link.trim(),
       docId,
       delivered,
       implemented:status==='implemented'?parseDate(implRaw):null,
       status,
       notes,
       type,
+      tabName,
       publishedUrl:extractPublishedUrl(notes,domain)
     });
   }
@@ -588,8 +640,51 @@ function parseSheetRows(rows,domain,sheetId){
 }
 
 function extractDocId(link){
+  // Try direct URL match first
   const m=link.match(/docs\.google\.com\/(document|spreadsheets)\/d\/([a-zA-Z0-9_-]+)/);
-  return m?m[2]:null;
+  if(m) return m[2];
+  // Store the title for async lookup later
+  return null;
+}
+
+// Cache for title->docId lookups
+const titleDocCache={};
+
+async function findDocByTitle(title){
+  if(!title||title.length<10) return null;
+  const cached=titleDocCache[title];
+  if(cached!==undefined) return cached||null;
+  // Mark as searching
+  titleDocCache[title]=false;
+  try{
+    // Search Drive for this exact title
+    const q=`name='${title.replace(/'/g,"\\'")}' and mimeType='application/vnd.google-apps.document'`;
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&pageSize=5`,{
+      headers:{Authorization:'Bearer '+accessToken}
+    });
+    if(!res.ok) return null;
+    const data=await res.json();
+    const files=data.files||[];
+    if(files.length){
+      titleDocCache[title]=files[0].id;
+      return files[0].id;
+    }
+    // Try contains search if exact fails
+    const shortTitle=title.slice(0,60).replace(/'/g,"\\'");
+    const q2=`name contains '${shortTitle}' and mimeType='application/vnd.google-apps.document'`;
+    const res2=await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q2)}&fields=files(id,name)&pageSize=5`,{
+      headers:{Authorization:'Bearer '+accessToken}
+    });
+    if(!res2.ok) return null;
+    const data2=await res2.json();
+    const files2=data2.files||[];
+    if(files2.length){
+      titleDocCache[title]=files2[0].id;
+      return files2[0].id;
+    }
+    titleDocCache[title]=null;
+    return null;
+  }catch(e){return null;}
 }
 
 function extractPublishedUrl(notes,domain){
@@ -823,13 +918,22 @@ async function renderImpact(){
     const el2=document.getElementById(t._sid);
     if(!el2) continue;
 
-    // Resolve URLs
+    // Resolve URLs — publishedUrl > stored docId > Drive lookup by link title
     let urls=[];
     if(t.publishedUrl){
       urls=[t.publishedUrl];
-    } else if(t.docId){
-      const docUrls=await getUrlsFromDoc(t.docId);
-      if(docUrls&&docUrls.length) urls=docUrls;
+    } else {
+      let docId=t.docId;
+      // If no docId stored, try to find the doc by its title (link column value)
+      if(!docId&&t.link&&t.link.length>5){
+        el2.innerHTML='<span class="spinner"></span><span style="font-size:12px;color:var(--text2)">Looking up deliverable doc...</span>';
+        docId=await findDocByTitle(t.link);
+        if(docId) t.docId=docId; // cache on task
+      }
+      if(docId){
+        const docUrls=await getUrlsFromDoc(docId);
+        if(docUrls&&docUrls.length) urls=docUrls;
+      }
     }
 
     const b0=addDays(t.implemented,-daysBefore),b1=addDays(t.implemented,-1);
