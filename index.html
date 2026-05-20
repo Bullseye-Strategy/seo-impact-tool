@@ -3,149 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SEO Impact Dashboard — Bullseye Strategy</title>
+<title>BES SEO Impact Tool</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --bg:#ffffff;--bg2:#f8f8f6;--bg3:#f1f0eb;
-    --text:#1a1a1a;--text2:#666;--text3:#999;
-    --border:#e5e5e2;--border2:#d0d0cc;
-    --green:#1D9E75;--green-bg:#EAF3DE;--green-text:#3B6D11;
-    --amber-bg:#FAEEDA;--amber-text:#854F0B;
-    --red:#D85A30;--red-bg:#FAECE7;--red-text:#993C1D;
-    --blue-bg:#E6F1FB;--blue-text:#185FA5;
-    --radius:8px;--radius-lg:12px;
-  }
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;line-height:1.5}
-  a{color:var(--blue-text);text-decoration:none}
-  a:hover{text-decoration:underline}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f8f8f6;--bg3:#f1f0eb;
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --border:#e5e5e2;--border2:#d0d0cc;
+  --green:#1D9E75;--gbg:#EAF3DE;--gtxt:#3B6D11;
+  --amber:#854F0B;--abg:#FAEEDA;
+  --red:#D85A30;--rbg:#FAECE7;--rtxt:#993C1D;
+  --blue:#185FA5;--bbg:#E6F1FB;
+  --r:8px;--rl:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;line-height:1.5}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
 
-  #app{display:flex;height:100vh;overflow:hidden}
-  #sidebar{width:230px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
-  #main{flex:1;overflow-y:auto;padding:28px}
+/* Layout */
+#app{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:240px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+#sidebar-scroll{flex:1;overflow-y:auto;padding-bottom:8px}
+#main{flex:1;overflow-y:auto;padding:28px}
 
-  .sidebar-header{padding:18px 16px;border-bottom:1px solid var(--border)}
-  .sidebar-logo{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
-  .sidebar-sub{font-size:11px;color:var(--text3)}
-  .sidebar-section{padding:14px 16px 6px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
-  .sidebar-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left}
-  .sidebar-item:hover{background:var(--bg2);color:var(--text)}
-  .sidebar-item.active{background:var(--bg2);color:var(--text);font-weight:500}
-  .sidebar-item .dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
-  .sidebar-item.active .dot{background:var(--green)}
-  .sidebar-divider{height:1px;background:var(--border);margin:6px 0}
-  .sidebar-bottom{margin-top:auto;padding:14px 16px;border-top:1px solid var(--border)}
-  .prop-item{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;margin:0 8px 4px}
-  .prop-item:hover{border-color:var(--border2)}
-  .prop-item.selected{border-color:var(--green);background:var(--green-bg);color:var(--green-text)}
+/* Sidebar */
+.s-header{padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.s-logo{font-size:14px;font-weight:600;color:var(--text)}
+.s-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.s-search-wrap{padding:10px 12px 6px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.s-search{width:100%;padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg2);color:var(--text);font-family:inherit}
+.s-search:focus{outline:none;border-color:var(--border2);background:var(--bg)}
+.s-section{padding:10px 16px 4px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.s-item{display:flex;align-items:center;gap:8px;padding:7px 16px;font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left;overflow:hidden}
+.s-item:hover{background:var(--bg2);color:var(--text)}
+.s-item.active{background:var(--bg2);color:var(--text);font-weight:500}
+.s-item-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--border2)}
+.dot.g{background:var(--green)}.dot.a{background:#BA7517}.dot.r{background:var(--red)}
+.s-divider{height:1px;background:var(--border);margin:6px 0}
+.s-bottom{padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
+.auth-chip{font-size:11px;color:var(--green);margin-bottom:8px}
+.s-count{font-size:11px;color:var(--text3);padding:4px 16px}
 
-  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-  .page-title{font-size:20px;font-weight:600;color:var(--text)}
-  .page-sub{font-size:13px;color:var(--text2);margin-top:2px}
+/* Page header */
+.p-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.p-title{font-size:20px;font-weight:600;color:var(--text)}
+.p-sub{font-size:13px;color:var(--text2);margin-top:2px}
 
-  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-  .metric{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
-  .metric-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
-  .metric-value{font-size:26px;font-weight:600;color:var(--text);line-height:1}
-  .metric-sub{font-size:12px;color:var(--text2);margin-top:4px}
-  .up{color:var(--green)!important}
-  .down{color:var(--red)!important}
-  .muted{color:var(--text2)!important}
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.metric{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:16px}
+.mlabel{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.mval{font-size:26px;font-weight:600;line-height:1;color:var(--text)}
+.msub{font-size:12px;color:var(--text2);margin-top:4px}
+.up{color:var(--green)!important}.down{color:var(--red)!important}.muted{color:var(--text2)!important}
 
-  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px}
-  .tab-btn{padding:8px 16px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px}
-  .tab-btn:hover{color:var(--text)}
-  .tab-btn.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+/* Tabs */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
 
-  .filters{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
-  .filter-btn{padding:5px 12px;font-size:12px;border:1px solid var(--border);border-radius:20px;background:var(--bg);color:var(--text2);cursor:pointer}
-  .filter-btn:hover{border-color:var(--border2);color:var(--text)}
-  .filter-btn.active{background:var(--text);color:#fff;border-color:var(--text)}
+/* Filters */
+.filters{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.fbtn{padding:5px 12px;font-size:12px;border:1px solid var(--border);border-radius:20px;background:var(--bg);color:var(--text2);cursor:pointer}
+.fbtn:hover{border-color:var(--border2);color:var(--text)}
+.fbtn.active{background:var(--text);color:#fff;border-color:var(--text)}
 
-  .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:10px;transition:border-color .15s}
-  .card:hover{border-color:var(--border2)}
-  .card-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px}
-  .card-meta{font-size:12px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+/* Cards */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:16px;margin-bottom:10px}
+.card:hover{border-color:var(--border2)}
+.ctitle{font-size:14px;font-weight:500;margin-bottom:4px;color:var(--text)}
+.cmeta{font-size:12px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 
-  .badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
-  .badge-green{background:var(--green-bg);color:var(--green-text)}
-  .badge-amber{background:var(--amber-bg);color:var(--amber-text)}
-  .badge-red{background:var(--red-bg);color:var(--red-text)}
-  .badge-blue{background:var(--blue-bg);color:var(--blue-text)}
-  .badge-gray{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.bg{background:var(--gbg);color:var(--gtxt)}
+.ba{background:var(--abg);color:var(--amber)}
+.br{background:var(--rbg);color:var(--rtxt)}
+.bb{background:var(--bbg);color:var(--blue)}
+.bgr{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
 
-  /* Impact cards */
-  .impact-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding:12px;background:var(--bg2);border-radius:var(--radius)}
-  .is-cell .is-label{font-size:11px;color:var(--text3);margin-bottom:2px}
-  .is-cell .is-val{font-size:16px;font-weight:600;color:var(--text)}
-  .is-cell .is-val.up{color:var(--green)}
-  .is-cell .is-val.down{color:var(--red)}
+/* Impact grid */
+.igrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding:12px;background:var(--bg2);border-radius:var(--r)}
+.ilabel{font-size:11px;color:var(--text3);margin-bottom:2px}
+.ival{font-size:15px;font-weight:600;color:var(--text)}
 
-  .page-rows{margin-top:10px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-  .page-row{display:grid;grid-template-columns:1fr repeat(5,80px);gap:0;padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;align-items:center}
-  .page-row:last-child{border-bottom:none}
-  .page-row.header{background:var(--bg2);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
-  .page-row .page-url{color:var(--blue-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
-  .page-row .val{text-align:right;font-weight:500}
-  .page-row .val.up{color:var(--green)}
-  .page-row .val.down{color:var(--red)}
+/* Page rows */
+.page-rows{margin-top:10px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.page-row{display:grid;grid-template-columns:1fr repeat(5,70px);gap:0;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12px;align-items:center}
+.page-row:last-child{border-bottom:none}
+.page-row.hdr{background:var(--bg2);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.purl{color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.pval{text-align:right;font-weight:500;color:var(--text)}
+.expand-btn{font-size:11px;color:var(--text3);cursor:pointer;padding:6px 0;display:flex;align-items:center;gap:4px;border:none;background:none;margin-top:4px}
+.expand-btn:hover{color:var(--text)}
 
-  .expand-btn{font-size:11px;color:var(--text3);cursor:pointer;padding:6px 0;display:flex;align-items:center;gap:4px;border:none;background:none;margin-top:4px}
-  .expand-btn:hover{color:var(--text)}
+/* Forms */
+select,input[type=text],input[type=password]{padding:7px 10px;font-size:13px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;width:100%}
+select:focus,input:focus{outline:none;border-color:var(--border2)}
+label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
+.btn{padding:8px 16px;font-size:13px;font-weight:500;border-radius:var(--r);cursor:pointer;border:none}
+.btn-p{background:var(--text);color:#fff}.btn-p:hover{opacity:.9}
+.btn-o{background:transparent;color:var(--text);border:1px solid var(--border)}.btn-o:hover{border-color:var(--border2);background:var(--bg2)}
+.btn-sm{padding:5px 10px;font-size:12px}
 
-  select,input[type=text],input[type=password]{padding:7px 10px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit;width:100%}
-  select:focus,input:focus{outline:none;border-color:var(--border2)}
-  label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
+/* Login */
+#login-screen{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg3)}
+.login-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:40px;width:400px}
+.login-logo{font-size:16px;font-weight:600;margin-bottom:2px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px}
+.btn-google{background:#fff;color:var(--text);border:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:10px 20px;font-size:14px;border-radius:var(--r);cursor:pointer;width:100%;justify-content:center}
+.btn-google:hover{background:var(--bg2)}
+.btn-google svg{width:18px;height:18px;flex-shrink:0}
 
-  .btn{padding:8px 16px;font-size:13px;font-weight:500;border-radius:var(--radius);cursor:pointer;border:none}
-  .btn-primary{background:var(--text);color:#fff}
-  .btn-primary:hover{opacity:.9}
-  .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
-  .btn-outline:hover{border-color:var(--border2);background:var(--bg2)}
-  .btn-google{background:#fff;color:var(--text);border:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:10px 20px;font-size:14px;border-radius:var(--radius);cursor:pointer;width:100%;justify-content:center}
-  .btn-google:hover{background:var(--bg2)}
-  .btn-google svg{width:18px;height:18px;flex-shrink:0}
+/* Section */
+.section{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:20px;margin-bottom:16px}
+.section-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 
-  #login-screen{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg3)}
-  .login-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:400px}
-  .login-logo{font-size:16px;font-weight:600;margin-bottom:4px}
-  .login-sub{font-size:13px;color:var(--text2);margin-bottom:28px}
+/* Spinner */
+.spinner{display:inline-block;width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--text2);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  .data-table{width:100%;border-collapse:collapse;font-size:13px}
-  .data-table th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);background:var(--bg2)}
-  .data-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text)}
-  .data-table tr:hover td{background:var(--bg2)}
-  .data-table tr:last-child td{border-bottom:none}
+/* Empty / info */
+.empty{text-align:center;padding:48px;color:var(--text2)}
+.empty-title{font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px}
+.info-banner{background:var(--bbg);border:1px solid #b5d4f4;border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--blue);margin-bottom:16px}
+.warn-banner{background:var(--abg);border:1px solid #FAC775;border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--amber);margin-bottom:16px;display:flex;gap:8px;align-items:flex-start}
 
-  .section{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px}
-  .section-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px}
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+/* Sheet mapping UI */
+.map-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;align-items:center;font-size:13px}
+.map-label{color:var(--text2)}
 
-  .spinner{display:inline-block;width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--text2);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
-  @keyframes spin{to{transform:rotate(360deg)}}
+/* Semrush table */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);background:var(--bg2)}
+.data-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+.data-table tr:hover td{background:var(--bg2)}
+.data-table tr:last-child td{border-bottom:none}
+.trend{font-size:11px;font-weight:500;padding:1px 6px;border-radius:4px}
+.trend.up{background:var(--gbg);color:var(--gtxt)}
+.trend.mid{background:var(--bg3);color:var(--text2)}
+.trend.down{background:var(--rbg);color:var(--rtxt)}
 
-  .empty{text-align:center;padding:48px;color:var(--text2)}
-  .empty-title{font-size:15px;font-weight:500;margin-bottom:6px;color:var(--text)}
+/* Token bar */
+.token-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:12px 16px;margin-bottom:20px}
+.token-row{display:flex;gap:8px;align-items:center;margin-top:6px}
+.token-row input{flex:1;font-family:monospace;font-size:11px;margin:0}
 
-  .trend{font-size:11px;font-weight:500;padding:1px 6px;border-radius:4px}
-  .trend.up{background:var(--green-bg);color:var(--green-text)}
-  .trend.down{background:var(--red-bg);color:var(--red-text)}
-  .trend.flat{background:var(--bg3);color:var(--text2)}
-
-  .token-row{display:flex;gap:8px;align-items:center}
-  .token-row input{flex:1;font-family:monospace;font-size:11px}
-
-  .info-banner{background:var(--blue-bg);border:1px solid #b5d4f4;border-radius:var(--radius);padding:10px 14px;font-size:12px;color:var(--blue-text);margin-bottom:16px;display:flex;gap:8px;align-items:flex-start}
-
-  @media(max-width:768px){#sidebar{display:none}.metrics{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){#sidebar{display:none}.metrics{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 
+<!-- Login -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">Bullseye Strategy</div>
-    <div class="login-sub">SEO Impact Dashboard — iCruise Client Group</div>
+    <div class="login-sub">SEO Impact Tool — Agency Dashboard</div>
     <button class="btn-google" onclick="startLogin()">
       <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
       Sign in with Google
@@ -155,7 +171,7 @@
       <label>Or paste an access token</label>
       <div class="token-row" style="margin-top:4px">
         <input type="password" id="manual-token" placeholder="ya29.a0...">
-        <button class="btn btn-outline" onclick="applyManualToken()">Connect</button>
+        <button class="btn btn-o btn-sm" onclick="applyManualToken()">Connect</button>
       </div>
       <div style="margin-top:8px;font-size:11px;color:var(--text3)">
         <a href="https://accounts.google.com/o/oauth2/v2/auth?client_id=330551103056-qe7urq10l1rm93escmuakbn64gp41mdp.apps.googleusercontent.com&redirect_uri=https://bullseye-strategy.github.io/seo-impact-tool/&response_type=token&scope=https://www.googleapis.com/auth/webmasters.readonly+https://www.googleapis.com/auth/drive.readonly&prompt=consent&login_hint=seo@bullseyestrategy.com" target="_blank">Get a fresh token →</a>
@@ -164,24 +180,34 @@
   </div>
 </div>
 
+<!-- App -->
 <div id="app" style="display:none">
   <div id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">Bullseye Strategy</div>
-      <div class="sidebar-sub">SEO Impact Dashboard</div>
+    <div class="s-header">
+      <div class="s-logo">Bullseye Strategy</div>
+      <div class="s-sub">SEO Impact Tool</div>
     </div>
-    <div class="sidebar-section">Views</div>
-    <button class="sidebar-item active" onclick="showView('overview')" id="nav-overview"><span class="dot"></span>Overview</button>
-    <button class="sidebar-item" onclick="showView('work')" id="nav-work"><span class="dot"></span>Work delivered</button>
-    <button class="sidebar-item" onclick="showView('impact')" id="nav-impact"><span class="dot"></span>Impact view</button>
-    <button class="sidebar-item" onclick="showView('semrush')" id="nav-semrush"><span class="dot"></span>Semrush</button>
-    <button class="sidebar-item" onclick="showView('forecast')" id="nav-forecast"><span class="dot"></span>Lift forecast</button>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section">GSC Properties</div>
-    <div id="prop-list-sidebar"></div>
-    <div class="sidebar-bottom">
-      <div style="font-size:11px;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:5px">● Connected</div>
-      <button class="btn btn-outline" style="width:100%;font-size:12px;padding:6px" onclick="logout()">Sign out</button>
+
+    <div class="s-search-wrap">
+      <input class="s-search" type="text" id="client-search" placeholder="Search clients..." oninput="filterSidebar(this.value)">
+    </div>
+
+    <div id="sidebar-scroll">
+      <div class="s-section">Views</div>
+      <button class="s-item active" onclick="showView('overview')" id="nav-overview"><span class="dot g"></span><span class="s-item-label">Overview</span></button>
+      <button class="s-item" onclick="showView('work')" id="nav-work"><span class="dot g"></span><span class="s-item-label">Work delivered</span></button>
+      <button class="s-item" onclick="showView('impact')" id="nav-impact"><span class="dot g"></span><span class="s-item-label">Impact view</span></button>
+      <button class="s-item" onclick="showView('semrush')" id="nav-semrush"><span class="dot g"></span><span class="s-item-label">Semrush</span></button>
+      <button class="s-item" onclick="showView('forecast')" id="nav-forecast"><span class="dot g"></span><span class="s-item-label">Lift forecast</span></button>
+
+      <div class="s-divider"></div>
+      <div class="s-section">Clients <span id="client-count" style="font-weight:400;text-transform:none;letter-spacing:0"></span></div>
+      <div id="client-list"></div>
+    </div>
+
+    <div class="s-bottom">
+      <div class="auth-chip" id="auth-chip">● Connected — seo@bullseyestrategy.com</div>
+      <button class="btn btn-o btn-sm" style="width:100%" onclick="logout()">Sign out</button>
     </div>
   </div>
 
@@ -189,63 +215,83 @@
 
     <!-- Overview -->
     <div id="view-overview">
-      <div class="page-header">
-        <div><div class="page-title">Overview</div><div class="page-sub">All clients combined</div></div>
-        <button class="btn btn-outline" onclick="showView('impact')">View impact →</button>
+      <div class="p-header">
+        <div><div class="p-title" id="overview-title">Agency overview</div><div class="p-sub" id="overview-sub">All clients</div></div>
+        <button class="btn btn-o" onclick="showView('impact')">View impact →</button>
       </div>
       <div class="metrics" id="overview-metrics"></div>
       <div class="grid-2">
-        <div class="section"><div class="section-title">By work type</div><div id="overview-by-type"></div></div>
-        <div class="section"><div class="section-title">By client</div><div id="overview-by-client"></div></div>
+        <div class="section"><div class="section-title">Work by type</div><div id="overview-by-type"></div></div>
+        <div class="section"><div class="section-title">Implementation status</div><div id="overview-by-status"></div></div>
+      </div>
+      <div class="section" id="overview-sheet-section" style="display:none">
+        <div class="section-title">Status sheet</div>
+        <div id="overview-sheet-content"></div>
       </div>
     </div>
 
     <!-- Work Delivered -->
     <div id="view-work" style="display:none">
-      <div class="page-header"><div><div class="page-title">Work delivered</div><div class="page-sub">All tasks across the client group</div></div></div>
-      <div class="filters" id="work-client-filters"></div>
-      <div class="filters" id="work-status-filters"></div>
+      <div class="p-header">
+        <div><div class="p-title">Work delivered</div><div class="p-sub" id="work-client-label">Select a client</div></div>
+        <button class="btn btn-o btn-sm" id="work-refresh-btn" onclick="refreshSheetForClient()" style="display:none">Refresh sheet</button>
+      </div>
+      <div id="work-sheet-banner" class="warn-banner" style="display:none">
+        <span>⚠</span>
+        <div id="work-sheet-msg"></div>
+      </div>
+      <div class="filters" id="work-status-filters">
+        <button class="fbtn active" onclick="filterStatus('all')" id="sf-all">All</button>
+        <button class="fbtn" onclick="filterStatus('implemented')" id="sf-impl">Implemented</button>
+        <button class="fbtn" onclick="filterStatus('pending')" id="sf-pend">Pending</button>
+        <button class="fbtn" onclick="filterStatus('blocked')" id="sf-block">Blocked</button>
+      </div>
       <div id="work-list"></div>
     </div>
 
     <!-- Impact View -->
     <div id="view-impact" style="display:none">
-      <div class="page-header">
-        <div><div class="page-title">Impact view</div><div class="page-sub">GSC performance for affected pages, before vs. after implementation</div></div>
+      <div class="p-header">
+        <div><div class="p-title">Impact view</div><div class="p-sub" id="impact-client-label">Select a client</div></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <select id="days-before" style="width:auto;font-size:12px"><option value="30">30d before</option><option value="60" selected>60d before</option><option value="90">90d before</option></select>
           <select id="days-after" style="width:auto;font-size:12px"><option value="30">30d after</option><option value="60" selected>60d after</option><option value="90">90d after</option></select>
-          <button class="btn btn-outline" onclick="gscCache={};docUrlCache={};renderImpact()">Refresh</button>
+          <button class="btn btn-o btn-sm" onclick="gscCache={};docCache={};renderImpact()">Refresh</button>
         </div>
       </div>
-      <div class="info-banner">ℹ️ For each implemented task, the tool reads the linked deliverable doc to find the exact pages affected, then pulls GSC data only for those pages.</div>
-      <div class="filters" id="impact-client-filters"></div>
+      <div class="info-banner">For each implemented task, the tool reads the linked deliverable doc to find affected pages, then pulls GSC data for those specific pages only.</div>
       <div id="impact-list"></div>
     </div>
 
     <!-- Semrush -->
     <div id="view-semrush" style="display:none">
-      <div class="page-header"><div><div class="page-title">Semrush</div><div class="page-sub">Keyword rankings &amp; domain overview</div></div></div>
-      <div class="filters" id="semrush-client-filters"></div>
+      <div class="p-header"><div><div class="p-title">Semrush</div><div class="p-sub" id="semrush-client-label">Select a client</div></div></div>
       <div class="tabs">
-        <button class="tab-btn active" onclick="showSemrushTab('rankings')" id="stab-rankings">Keyword rankings</button>
-        <button class="tab-btn" onclick="showSemrushTab('audit')" id="stab-audit">Domain overview</button>
+        <button class="tab active" onclick="showSemrushTab('rankings')" id="stab-rankings">Keyword rankings</button>
+        <button class="tab" onclick="showSemrushTab('overview')" id="stab-overview">Domain overview</button>
       </div>
       <div id="semrush-rankings"></div>
-      <div id="semrush-audit" style="display:none"></div>
+      <div id="semrush-overview" style="display:none"></div>
     </div>
 
     <!-- Forecast -->
     <div id="view-forecast" style="display:none">
-      <div class="page-header"><div><div class="page-title">Lift forecast</div><div class="page-sub">Estimate traffic impact for planned work</div></div></div>
+      <div class="p-header"><div><div class="p-title">Lift forecast</div><div class="p-sub">Estimate traffic impact for planned work</div></div></div>
       <div class="grid-2" style="margin-bottom:16px">
         <div class="section">
           <div class="section-title">Forecast a project</div>
           <div style="display:flex;flex-direction:column;gap:10px">
-            <div><label>Client</label><select id="fc-client"><option value="icruise">iCruise</option><option value="alaska">Alaska Cruises</option><option value="cheap">Cruise Cheap</option></select></div>
-            <div><label>Work type</label><select id="fc-type"><option value="on-page">On-page optimization</option><option value="blog">Blog / content</option><option value="technical">Technical SEO</option><option value="aeo">AEO / AI overview</option><option value="meta">Meta titles &amp; descriptions</option></select></div>
+            <div><label>Work type</label>
+              <select id="fc-type">
+                <option value="on-page">On-page optimization</option>
+                <option value="blog">Blog / content</option>
+                <option value="technical">Technical SEO</option>
+                <option value="aeo">AEO / AI overview</option>
+                <option value="meta">Meta titles &amp; descriptions</option>
+              </select>
+            </div>
             <div><label>Number of pages</label><input type="text" id="fc-pages" value="10"></div>
-            <button class="btn btn-primary" onclick="runForecast()">Estimate lift</button>
+            <button class="btn btn-p" onclick="runForecast()">Estimate lift</button>
           </div>
         </div>
         <div id="forecast-result" class="section">
@@ -253,7 +299,7 @@
           <div class="empty" style="padding:20px"><div style="font-size:13px;color:var(--text2)">Fill in the form and click Estimate lift</div></div>
         </div>
       </div>
-      <div class="section"><div class="section-title">Historical implementation rate</div><div id="hist-summary"></div></div>
+      <div class="section"><div class="section-title">Historical implementation rate (current client)</div><div id="hist-summary"></div></div>
     </div>
 
   </div>
@@ -264,92 +310,20 @@ const CLIENT_ID='330551103056-qe7urq10l1rm93escmuakbn64gp41mdp.apps.googleuserco
 const REDIRECT_URI='https://bullseye-strategy.github.io/seo-impact-tool/';
 const SEMRUSH_KEY='c1fb8c91e7d68c53af04977e176fde1f';
 const SCOPES='https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/drive.readonly';
-
-const CLIENT_NAMES={icruise:'iCruise',alaska:'Alaska Cruises',cheap:'Cruise Cheap'};
 const TYPE_LABELS={'on-page':'On-page',blog:'Blog',technical:'Technical',aeo:'AEO',meta:'Meta'};
-const CLIENT_DOMAINS={icruise:'icruise.com',alaska:'alaskacruises.com',cheap:'cruisecheap.com'};
 
-let accessToken=null, gscProperties=[], selectedProps=new Set();
-let activeWorkClient='all', activeWorkStatus='all', activeImpactClient='all', activeSemrushClient='icruise';
-let gscCache={}, docUrlCache={};
+let accessToken=null;
+let allProperties=[]; // all GSC properties
+let activeClient=null; // currently selected GSC property URL
+let clientTasks={}; // cache: property -> [{task,type,delivered,implemented,status,notes,docId,publishedUrl}]
+let clientSheets={}; // cache: property -> sheetId
+let gscCache={}, docCache={};
+let activeWorkStatus='all';
 
-// Tasks with Google Doc IDs extracted from status sheet links
-const TASKS=[
-  // iCruise — implemented
-  {client:'icruise',task:'Blog Brief: Short Cruises from Miami, LA, Port Canaveral',type:'blog',delivered:'2025-04-08',implemented:'2025-08-04',status:'implemented',docId:'1BEDKMWcN3iGgoPhoUgy3moozrSnb46mVH9T2kjynyLE'},
-  {client:'icruise',task:'Blog Brief: Sailing for Less (Canadian Cruise Deals)',type:'blog',delivered:'2025-04-28',implemented:'2025-08-04',status:'implemented',docId:'1jrBw149ntAEU_2AG4Y1jF-xr-69X_7vaXkcwZaMwZFg'},
-  {client:'icruise',task:'Blog Brief: Exploring Canada with MSC Cruises',type:'blog',delivered:'2025-04-28',implemented:'2025-07-01',status:'implemented',docId:'1ujliudLXBnkBWiSjXUyrc-GOwyq05c0fuVIbxCTT95c'},
-  {client:'icruise',task:'Blog Brief: Last-Minute Weekend Getaways',type:'blog',delivered:'2025-04-28',implemented:'2025-08-04',status:'implemented',docId:'1--mnJ26exejETyXF2UXfpLsoMIHDVF8j57zA2K74ebU'},
-  {client:'icruise',task:'Celebrity Cruises Concierge Class Optimizations',type:'on-page',delivered:'2025-04-29',implemented:'2025-09-02',status:'implemented',docId:'1-RrCwsdkG3fZi95BMvmZIiwlMb_rmL9yHv-a80x06LI'},
-  {client:'icruise',task:'Blog Brief: HX Expeditions',type:'blog',delivered:'2025-07-25',implemented:'2025-09-02',status:'implemented',docId:'1pxBiF-26RvgwTWtAKx5dqqLT98dBvpB1jCbvx_HBhHs'},
-  {client:'icruise',task:'Explora Optimizations',type:'on-page',delivered:'2025-08-08',implemented:'2025-09-10',status:'implemented',docId:'1DL1lxo-6SqqmTDDIA8rHED6cM7Mt01Cxf_j8UbDKir8'},
-  {client:'icruise',task:'American and Aurora Optimizations',type:'on-page',delivered:'2025-09-02',implemented:'2025-11-14',status:'implemented',docId:'1_xI6a3uLioK5UOb4KLMKGqt4PlVlw1IBORtL0WTmoYc'},
-  {client:'icruise',task:'Costa and Crystal Line Optimizations',type:'on-page',delivered:'2025-09-26',implemented:'2025-11-13',status:'implemented',docId:'1XmCHnUHMuEvokA4vrQ37ZTMDoB59NfAMsjwS-W0SZ68'},
-  {client:'icruise',task:'Blog Brief: Mega Ship or Intimate Voyage',type:'blog',delivered:'2025-12-18',implemented:'2026-01-16',status:'implemented',docId:'1jo6M11jbslwev4zpoMyejlkokjDw0n4hj2viVFj8JMA'},
-  {client:'icruise',task:'Blog Brief: River Cruise vs Ocean Cruise',type:'blog',delivered:'2025-12-18',implemented:'2026-01-23',status:'implemented',docId:'1VgUL1by35rjy_a5lU5K_3B2_9s1ulhES-WFgp-llvIQ'},
-  {client:'icruise',task:'Blog Brief: Best Cruise Lines for Every Type of Traveler',type:'blog',delivered:'2025-12-18',implemented:'2026-01-30',status:'implemented',docId:'1F985NIGasdOY0sCzwvOBgkjGfY-j0AIO7lvCBKc2SMU'},
-  {client:'icruise',task:'Blog Brief: Caribbean Cruises Explained',type:'blog',delivered:'2026-01-28',implemented:'2026-02-27',status:'implemented',docId:'13X9cYHYeTzN8BowHrdAc49LR_KiOpKZ72NtvbwzKzMU'},
-  {client:'icruise',task:'Blog Brief: Mediterranean Cruises Best Routes',type:'blog',delivered:'2026-01-28',implemented:'2026-03-13',status:'implemented',docId:'1DNd5UHlrAqJfHMJpca22Aoxl1vZPgaUv0nq5IFIxpZg'},
-  // iCruise — blocked/pending
-  {client:'icruise',task:'On-Page Optimizations: Royal Caribbean, Celebrity, Viking',type:'on-page',delivered:'2025-04-23',implemented:null,status:'blocked',notes:'Blocked — User Story 155149',docId:'1K1ybFsmI1jW_7PRbuqCLLvzedhnnhPt0qlA-OWJX-WA'},
-  {client:'icruise',task:'Mediterranean Cruises On-Page Optimizations',type:'on-page',delivered:'2025-04-29',implemented:null,status:'blocked',notes:'Pending Defects 163239/160873',docId:''},
-  {client:'icruise',task:'Hawaii Cruises On-Page Optimizations',type:'on-page',delivered:'2025-04-29',implemented:null,status:'blocked',notes:'Blocked — User Story 163250',docId:''},
-  {client:'icruise',task:'MSC Cruises On-Page Optimizations',type:'on-page',delivered:'2025-04-29',implemented:null,status:'blocked',notes:'Blocked — User Story 155149',docId:''},
-  {client:'icruise',task:'Silversea, Virgin, Oceania Optimizations',type:'on-page',delivered:'2025-04-08',implemented:null,status:'blocked',notes:'Blocked — User Story 155149',docId:''},
-  {client:'icruise',task:'Broken Links Audit',type:'technical',delivered:'2025-06-05',implemented:null,status:'pending',docId:''},
-  {client:'icruise',task:'Redirects and Duplicates',type:'technical',delivered:'2025-06-17',implemented:null,status:'pending',docId:'11SrMi9Y1GPxtl8MQR171AxAJxBFck5ErUwS7rpu5Q84'},
-  {client:'icruise',task:'Princess and Cunard On-Page Optimizations',type:'on-page',delivered:'2025-06-17',implemented:null,status:'blocked',notes:'Blocked — User Story 155149',docId:''},
-  {client:'icruise',task:'Destination Page Optimizations',type:'on-page',delivered:'2025-08-08',implemented:null,status:'blocked',notes:'Blocked — User Story 155149',docId:''},
-  {client:'icruise',task:'Blog Brief: Singles Cruises',type:'blog',delivered:'2025-08-08',implemented:null,status:'pending',docId:''},
-  {client:'icruise',task:'Disney and Emerald Optimizations',type:'on-page',delivered:'2025-09-12',implemented:null,status:'blocked',notes:'Pending Emerald & Disney Destinations',docId:''},
-  {client:'icruise',task:'Azamara and Celestyal Optimizations',type:'on-page',delivered:'2025-09-26',implemented:null,status:'blocked',notes:'Azamara Destinations Blocked',docId:''},
-  {client:'icruise',task:'AEO Audit',type:'aeo',delivered:'2025-12-01',implemented:null,status:'pending',docId:''},
-  {client:'icruise',task:'Deals & Promo Pages AEO Optimizations',type:'aeo',delivered:'2025-12-01',implemented:null,status:'pending',docId:''},
-  {client:'icruise',task:'First-Time Cruisers Optimizations',type:'on-page',delivered:'2026-01-09',implemented:null,status:'pending',docId:'1p_fPVGC8aKgK82jfBM58kTbg410bumEVgKOEGm37eLM'},
-  {client:'icruise',task:'FAQ/AI Overview Opportunities',type:'aeo',delivered:'2026-02-12',implemented:null,status:'pending',docId:''},
-  {client:'icruise',task:'Bounce Rate Optimizations',type:'on-page',delivered:'2026-04-08',implemented:null,status:'pending',docId:''},
-  {client:'icruise',task:'Seasonal Cruise Pages',type:'on-page',delivered:'2026-04-23',implemented:null,status:'pending',docId:''},
-  {client:'icruise',task:'Destination Page Enhancements',type:'on-page',delivered:'2026-05-07',implemented:null,status:'pending',docId:''},
-  // Alaska — implemented
-  {client:'alaska',task:'Page Optimizations: Cruises From Seattle, Vancouver, SF',type:'on-page',delivered:'2025-07-03',implemented:'2025-09-29',status:'implemented',docId:'1jQsJrh2L4lRgxuNBwqTPZOQx-Lj9GgV7DZywt-Q4CFk'},
-  {client:'alaska',task:'Blog Brief: Alaska Cruise Guide for First Time Cruisers',type:'blog',delivered:'2026-01-28',implemented:'2026-03-27',status:'implemented',docId:'1FMjn1ER381b9AneqhywSXNrv9dx-hRfUuSk0rUcE4N4'},
-  {client:'alaska',task:'Blog Brief: Best Time to Cruise Alaska',type:'blog',delivered:'2026-01-28',implemented:'2026-03-02',status:'implemented',docId:'1jAE-w8RUGle8IpiE0WAVb2tcOEmPWrro97KLZfnduK8'},
-  {client:'alaska',task:'Blog Brief: Best Cruise Lines for Alaska Compared',type:'blog',delivered:'2026-01-28',implemented:'2026-04-24',status:'implemented',docId:'1u6021P62K2weme59-PrTBNrQ0jueaKPvuihlqXxRNbI'},
-  {client:'alaska',task:'Authority Optimizations',type:'on-page',delivered:'2026-03-20',implemented:'2026-03-20',status:'implemented',docId:''},
-  {client:'alaska',task:'Trust Building Optimizations',type:'on-page',delivered:'2026-04-22',implemented:'2026-04-22',status:'implemented',docId:''},
-  {client:'alaska',task:'Intent Audit',type:'technical',delivered:'2026-05-18',implemented:'2026-05-18',status:'implemented',docId:''},
-  // Alaska — blocked/pending
-  {client:'alaska',task:'Fix Meta Titles and Descriptions',type:'meta',delivered:'2025-06-24',implemented:null,status:'pending',notes:'~50% complete',docId:''},
-  {client:'alaska',task:'Sitemap Fixes',type:'technical',delivered:'2025-07-03',implemented:null,status:'pending',docId:''},
-  {client:'alaska',task:'Carnival & Royal Caribbean Ship Itineraries',type:'on-page',delivered:'2025-08-08',implemented:null,status:'blocked',notes:'Needs Dev',docId:''},
-  {client:'alaska',task:'Schema Recommendations',type:'technical',delivered:'2025-08-08',implemented:null,status:'pending',docId:''},
-  {client:'alaska',task:'Carnival, Celebrity, Disney Optimizations',type:'on-page',delivered:'2025-09-15',implemented:null,status:'blocked',notes:'Needs Dev',docId:''},
-  {client:'alaska',task:'MSC, Norwegian, Oceania Optimizations',type:'on-page',delivered:'2025-09-26',implemented:null,status:'blocked',notes:'Needs Dev',docId:''},
-  {client:'alaska',task:'AEO Audit',type:'aeo',delivered:'2025-11-25',implemented:null,status:'pending',docId:''},
-  {client:'alaska',task:'Alaska Weather AEO Optimizations',type:'aeo',delivered:'2025-11-25',implemented:null,status:'pending',docId:''},
-  {client:'alaska',task:'Wildlife Page Optimizations',type:'on-page',delivered:'2026-03-02',implemented:null,status:'pending',docId:''},
-  {client:'alaska',task:'Glacier Page',type:'blog',delivered:'2026-03-23',implemented:null,status:'pending',docId:''},
-  // Cruise Cheap — implemented
-  {client:'cheap',task:'Cruises From On-Page Optimizations',type:'on-page',delivered:'2025-07-14',implemented:'2025-07-14',status:'implemented',docId:''},
-  {client:'cheap',task:'Ships On-Page Optimizations (Holland America)',type:'on-page',delivered:'2025-08-08',implemented:'2026-01-02',status:'implemented',docId:''},
-  {client:'cheap',task:'Meta Titles and Description Updates',type:'meta',delivered:'2025-08-21',implemented:'2025-08-22',status:'implemented',docId:''},
-  {client:'cheap',task:'Blog Brief: Best Time to Book a Cruise',type:'blog',delivered:'2026-01-28',implemented:'2026-04-10',status:'implemented',docId:'1K00lwSKm_4CiVIPilVybnTYF9sL0Kzko8oOKv6uHUsM'},
-  {client:'cheap',task:'Blog Brief: Last-Minute Cruise Deals',type:'blog',delivered:'2026-01-28',implemented:'2026-05-08',status:'implemented',docId:'1fmvsOQInM3HM_YSsJyWW6FyX8KLrmJuXJnljb-obO9g'},
-  {client:'cheap',task:'Authority Optimizations',type:'on-page',delivered:'2026-03-24',implemented:'2026-05-05',status:'implemented',docId:''},
-  // Cruise Cheap — blocked/pending
-  {client:'cheap',task:'Schema Recommendations',type:'technical',delivered:'2025-08-08',implemented:null,status:'pending',docId:''},
-  {client:'cheap',task:'Carnival, Celebrity, Costa, Cunard Optimizations',type:'on-page',delivered:'2025-09-26',implemented:null,status:'blocked',notes:'Needs Dev',docId:''},
-  {client:'cheap',task:'Disney, HAL, MSC, Norwegian Optimizations',type:'on-page',delivered:'2025-09-26',implemented:null,status:'blocked',notes:'Needs Dev',docId:''},
-  {client:'cheap',task:'Princess, Virgin, Royal Caribbean Optimizations',type:'on-page',delivered:'2025-10-17',implemented:null,status:'blocked',notes:'Needs Dev',docId:''},
-  {client:'cheap',task:'AEO Audit',type:'aeo',delivered:'2025-11-20',implemented:null,status:'pending',docId:''},
-  {client:'cheap',task:'Hidden Fees & Total Cost Transparency',type:'on-page',delivered:'2026-02-11',implemented:null,status:'pending',docId:''},
-  {client:'cheap',task:'Voice/Conversational Query Optimization',type:'aeo',delivered:'2026-04-23',implemented:null,status:'pending',docId:''},
-];
-
-/* ---- Auth ---- */
+// ── Auth ──────────────────────────────────────────────
 function startLogin(){
-  const params=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:REDIRECT_URI,response_type:'token',scope:SCOPES,prompt:'consent',login_hint:'seo@bullseyestrategy.com'});
-  window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString();
+  const p=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:REDIRECT_URI,response_type:'token',scope:SCOPES,prompt:'consent',login_hint:'seo@bullseyestrategy.com'});
+  window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+p.toString();
 }
 function applyManualToken(){
   const v=document.getElementById('manual-token').value.trim();
@@ -361,276 +335,474 @@ function checkTokenInUrl(){
   const hash=window.location.hash;
   if(hash&&hash.includes('access_token')){
     const p=new URLSearchParams(hash.slice(1));
-    const token=p.get('access_token');
-    if(token){accessToken=token;localStorage.setItem('gsc_token',token);window.history.replaceState(null,'',window.location.pathname);return true;}
+    const t=p.get('access_token');
+    if(t){accessToken=t;localStorage.setItem('gsc_token',t);window.history.replaceState(null,'',window.location.pathname);return true;}
   }
   return false;
 }
 
-/* ---- Init ---- */
+// ── Init ──────────────────────────────────────────────
 async function initApp(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='flex';
-  await loadGSCProperties();
-  buildSidebarProps();
-  buildClientFilters();
-  renderOverview();
-}
-
-async function loadGSCProperties(){
-  try{
-    const res=await fetch('https://www.googleapis.com/webmasters/v3/sites',{headers:{Authorization:'Bearer '+accessToken}});
-    if(!res.ok) throw new Error();
-    const data=await res.json();
-    gscProperties=(data.siteEntry||[]).map(s=>s.siteUrl);
-    const known=['icruise.com','alaskacruises.com','cruisecheap.com'];
-    gscProperties.forEach(p=>{if(known.some(d=>p.includes(d)))selectedProps.add(p);});
-    if(!selectedProps.size) gscProperties.forEach(p=>selectedProps.add(p));
-  }catch(e){
-    gscProperties=['sc-domain:icruise.com','sc-domain:alaskacruises.com','sc-domain:cruisecheap.com'];
-    gscProperties.forEach(p=>selectedProps.add(p));
+  await loadProperties();
+  buildSidebar();
+  // auto-select first client
+  if(allProperties.length>0){
+    selectClient(allProperties[0]);
+  } else {
+    renderOverviewAgency();
   }
 }
 
-function propForClient(client){
-  const domain=CLIENT_DOMAINS[client];
-  return gscProperties.find(p=>p.includes(domain))||('sc-domain:'+domain);
+async function loadProperties(){
+  try{
+    const res=await fetch('https://www.googleapis.com/webmasters/v3/sites',{headers:{Authorization:'Bearer '+accessToken}});
+    if(!res.ok) throw new Error('GSC error');
+    const data=await res.json();
+    allProperties=(data.siteEntry||[])
+      .map(s=>s.siteUrl)
+      .sort((a,b)=>cleanDomain(a).localeCompare(cleanDomain(b)));
+  }catch(e){
+    allProperties=[];
+    console.warn('Could not load GSC properties',e);
+  }
 }
 
-function buildSidebarProps(){
-  document.getElementById('prop-list-sidebar').innerHTML=gscProperties.map(p=>{
-    const short=p.replace('sc-domain:','').replace('https://','').replace(/\/$/,'');
-    const sel=selectedProps.has(p);
-    return `<div class="prop-item ${sel?'selected':''}" onclick="toggleProp('${p}',this)">
-      <span>${short}</span>${sel?'<span style="font-size:10px">✓</span>':'<span></span>'}
-    </div>`;
+function cleanDomain(url){
+  return url.replace('sc-domain:','').replace(/https?:\/\//,'').replace(/\/$/,'');
+}
+
+// ── Sidebar ───────────────────────────────────────────
+function buildSidebar(){
+  document.getElementById('client-count').textContent='('+allProperties.length+')';
+  renderClientList(allProperties);
+}
+
+function renderClientList(props){
+  const el=document.getElementById('client-list');
+  if(!props.length){
+    el.innerHTML='<div style="padding:8px 16px;font-size:12px;color:var(--text3)">No clients found</div>';
+    return;
+  }
+  el.innerHTML=props.map(p=>{
+    const domain=cleanDomain(p);
+    const isActive=p===activeClient;
+    return `<button class="s-item${isActive?' active':''}" onclick="selectClient('${p}')" id="sitem-${btoa(p).replace(/=/g,'')}">
+      <span class="dot g"></span>
+      <span class="s-item-label" title="${domain}">${domain}</span>
+    </button>`;
   }).join('');
 }
 
-function toggleProp(prop,el){
-  if(selectedProps.has(prop)){if(selectedProps.size===1)return;selectedProps.delete(prop);el.classList.remove('selected');el.querySelector('span:last-child').textContent='';}
-  else{selectedProps.add(prop);el.classList.add('selected');el.querySelector('span:last-child').textContent='✓';}
+function filterSidebar(q){
+  const term=q.toLowerCase().trim();
+  const filtered=term?allProperties.filter(p=>cleanDomain(p).toLowerCase().includes(term)):allProperties;
+  renderClientList(filtered);
 }
 
-function buildClientFilters(){
-  ['work','impact','semrush'].forEach(view=>{
-    const el=document.getElementById(view+'-client-filters');
-    if(!el)return;
-    el.innerHTML=['all','icruise','alaska','cheap'].map(c=>`
-      <button class="filter-btn ${c==='all'?'active':''}" id="${view}-cf-${c}" onclick="setClientFilter('${view}','${c}')">${c==='all'?'All clients':CLIENT_NAMES[c]}</button>`).join('');
+function selectClient(prop){
+  activeClient=prop;
+  // update sidebar highlight
+  document.querySelectorAll('.s-item[id^=sitem-]').forEach(el=>el.classList.remove('active'));
+  const id='sitem-'+btoa(prop).replace(/=/g,'');
+  const el=document.getElementById(id);
+  if(el) el.classList.add('active');
+  // re-render current view for new client
+  const views=['overview','work','impact','semrush','forecast'];
+  const activeView=views.find(v=>document.getElementById('view-'+v).style.display!=='none')||'overview';
+  showView(activeView);
+}
+
+// ── Navigation ────────────────────────────────────────
+function showView(view){
+  ['overview','work','impact','semrush','forecast'].forEach(v=>{
+    document.getElementById('view-'+v).style.display=v===view?'block':'none';
+    document.getElementById('nav-'+v).classList.toggle('active',v===view);
   });
-  document.getElementById('work-status-filters').innerHTML=
-    ['all','implemented','pending','blocked'].map(s=>`
-      <button class="filter-btn ${s==='all'?'active':''}" id="work-sf-${s}" onclick="setStatusFilter('${s}')">${s.charAt(0).toUpperCase()+s.slice(1)}</button>`).join('');
+  if(view==='overview') renderOverview();
+  if(view==='work') renderWork();
+  if(view==='impact'){gscCache={};renderImpact();}
+  if(view==='semrush') renderSemrush();
+  if(view==='forecast') renderForecast();
 }
 
-function setClientFilter(view,client){
-  if(view==='work')activeWorkClient=client;
-  else if(view==='impact')activeImpactClient=client;
-  else if(view==='semrush')activeSemrushClient=client==='all'?'icruise':client;
-  ['all','icruise','alaska','cheap'].forEach(c=>{const el=document.getElementById(view+'-cf-'+c);if(el)el.classList.toggle('active',c===client);});
-  if(view==='work')renderWorkList();
-  else if(view==='impact'){gscCache={};docUrlCache={};renderImpact();}
-  else if(view==='semrush')renderSemrush();
+// ── Sheet loading ─────────────────────────────────────
+async function getTasksForClient(prop){
+  if(clientTasks[prop]) return clientTasks[prop];
+
+  const domain=cleanDomain(prop);
+  // Search Drive for a status sheet matching this domain
+  const sheetId=await findStatusSheet(domain);
+  if(!sheetId){
+    clientTasks[prop]=[];
+    return [];
+  }
+  clientSheets[prop]=sheetId;
+  const tasks=await readSheet(sheetId,domain);
+  clientTasks[prop]=tasks;
+  return tasks;
 }
 
-function setStatusFilter(s){
-  activeWorkStatus=s;
-  ['all','implemented','pending','blocked'].forEach(x=>{const el=document.getElementById('work-sf-'+x);if(el)el.classList.toggle('active',x===s);});
-  renderWorkList();
+async function findStatusSheet(domain){
+  // Try stored sheet ID first
+  const stored=localStorage.getItem('sheet_'+domain);
+  if(stored) return stored;
+
+  // Search Drive
+  const q=`title contains 'Status Sheet' and mimeType='application/vnd.google-apps.spreadsheet'`;
+  try{
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&pageSize=20`,{
+      headers:{Authorization:'Bearer '+accessToken}
+    });
+    if(!res.ok) return null;
+    const data=await res.json();
+    const files=data.files||[];
+    // Find best match — title contains part of the domain
+    const domainParts=domain.split('.')[0].toLowerCase();
+    const match=files.find(f=>f.name.toLowerCase().includes(domainParts))||
+                 files.find(f=>f.name.toLowerCase().includes(domain.toLowerCase()));
+    if(match){
+      localStorage.setItem('sheet_'+domain,match.id);
+      return match.id;
+    }
+    return null;
+  }catch(e){return null;}
 }
 
-/* ---- Helpers ---- */
-function fmtDate(d){if(!d)return '';return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
-function addDays(ds,n){const d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
-function pctStr(a,b){if(!b)return null;const p=Math.round((a-b)/b*100);return(p>=0?'+':'')+p+'%';}
-function statusBadge(t){
-  if(t.status==='implemented')return '<span class="badge badge-green">✓ Implemented</span>';
-  if(t.status==='blocked')return '<span class="badge badge-red">⊘ Blocked</span>';
-  return '<span class="badge badge-amber">◷ Pending</span>';
-}
-function typeBadge(type){
-  const cls={blog:'badge-blue','on-page':'badge-gray',technical:'badge-gray',aeo:'badge-blue',meta:'badge-gray'};
-  return `<span class="badge ${cls[type]||'badge-gray'}">${TYPE_LABELS[type]||type}</span>`;
+async function readSheet(sheetId,domain){
+  try{
+    const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A:F?majorDimension=ROWS`,{
+      headers:{Authorization:'Bearer '+accessToken}
+    });
+    if(!res.ok) return [];
+    const data=await res.json();
+    const rows=data.values||[];
+    return parseSheetRows(rows,domain,sheetId);
+  }catch(e){return [];}
 }
 
-/* ---- Overview ---- */
-function renderOverview(){
-  const all=TASKS;
-  const impl=all.filter(t=>t.status==='implemented').length;
-  const blocked=all.filter(t=>t.status==='blocked').length;
-  const pending=all.filter(t=>t.status==='pending').length;
-  const pct=Math.round(impl/all.length*100);
+function parseSheetRows(rows,domain,sheetId){
+  const tasks=[];
+  // Find header row — look for row with "Task" and "Date"
+  let headerIdx=-1;
+  let colTask=0,colLink=1,colDelivered=2,colImplemented=3,colNotes=4;
+
+  for(let i=0;i<Math.min(rows.length,10);i++){
+    const row=rows[i].map(c=>(c||'').toLowerCase());
+    if(row.some(c=>c.includes('task'))&&row.some(c=>c.includes('date'))){
+      headerIdx=i;
+      const r=rows[i].map(c=>(c||'').toLowerCase());
+      colTask=r.findIndex(c=>c.includes('task'));
+      colLink=r.findIndex(c=>c.includes('link'));
+      colDelivered=r.findIndex(c=>c.includes('deliver'))||2;
+      colImplemented=r.findIndex(c=>c.includes('implement'))||3;
+      colNotes=r.findIndex(c=>c.includes('note'))||4;
+      if(colTask<0) colTask=0;
+      if(colLink<0) colLink=1;
+      break;
+    }
+  }
+
+  const startIdx=headerIdx>=0?headerIdx+1:1;
+  for(let i=startIdx;i<rows.length;i++){
+    const row=rows[i];
+    if(!row||!row.length) continue;
+    const taskName=(row[colTask]||'').trim();
+    if(!taskName||taskName.toLowerCase()==='task') continue;
+
+    const link=(row[colLink]||'').trim();
+    const delivered=parseDate(row[colDelivered]||'');
+    const implRaw=(row[colImplemented]||'').trim();
+    const notes=(row[colNotes]||'').trim();
+
+    // Extract doc ID from link column
+    const docId=extractDocId(link);
+
+    // Determine status
+    let status='pending';
+    const implLower=implRaw.toLowerCase();
+    if(implRaw&&!implRaw.startsWith('(')&&!implRaw.startsWith('assigned')&&isDate(implRaw)){
+      status='implemented';
+    } else if(notes.toLowerCase().includes('block')||implLower.includes('block')){
+      status='blocked';
+    }
+
+    // Determine type from task name
+    const type=inferType(taskName);
+
+    tasks.push({
+      task:taskName,
+      link,
+      docId,
+      delivered,
+      implemented:status==='implemented'?parseDate(implRaw):null,
+      status,
+      notes,
+      type,
+      publishedUrl:extractPublishedUrl(notes,domain)
+    });
+  }
+  return tasks;
+}
+
+function extractDocId(link){
+  const m=link.match(/docs\.google\.com\/(document|spreadsheets)\/d\/([a-zA-Z0-9_-]+)/);
+  return m?m[2]:null;
+}
+
+function extractPublishedUrl(notes,domain){
+  // Look for a full URL in the notes that matches the client domain
+  const m=notes.match(/https?:\/\/[^\s,]+/);
+  if(m&&m[0].includes(domain.split('.')[0])) return m[0];
+  return null;
+}
+
+function parseDate(str){
+  if(!str) return null;
+  // Handle formats: MM/DD/YY, MM/DD/YYYY, YYYY-MM-DD
+  str=str.trim().split('*')[0].split('(')[0].trim();
+  if(!str) return null;
+  // MM/DD/YY or MM/DD/YYYY
+  const m1=str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(m1){
+    let y=parseInt(m1[3]);
+    if(y<100) y+=2000;
+    const d=new Date(y,parseInt(m1[1])-1,parseInt(m1[2]));
+    return isNaN(d)?null:d.toISOString().slice(0,10);
+  }
+  // YYYY-MM-DD
+  const m2=str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m2) return str;
+  return null;
+}
+
+function isDate(str){
+  return !!parseDate(str);
+}
+
+function inferType(name){
+  const n=name.toLowerCase();
+  if(n.includes('blog')||n.includes('brief')||n.includes('content')) return 'blog';
+  if(n.includes('schema')||n.includes('redirect')||n.includes('sitemap')||n.includes('technical')||n.includes('audit')||n.includes('speed')||n.includes('broken')||n.includes('indexat')||n.includes('robots')) return 'technical';
+  if(n.includes('aeo')||n.includes('ai overview')||n.includes('faq')||n.includes('voice')||n.includes('conversational')) return 'aeo';
+  if(n.includes('meta')||n.includes('title')||n.includes('description')) return 'meta';
+  return 'on-page';
+}
+
+async function refreshSheetForClient(){
+  if(!activeClient) return;
+  const domain=cleanDomain(activeClient);
+  localStorage.removeItem('sheet_'+domain);
+  delete clientTasks[activeClient];
+  delete clientSheets[activeClient];
+  renderWork();
+}
+
+// ── Overview ──────────────────────────────────────────
+async function renderOverview(){
+  if(!activeClient){renderOverviewAgency();return;}
+  const domain=cleanDomain(activeClient);
+  document.getElementById('overview-title').textContent=domain;
+  document.getElementById('overview-sub').textContent='Client overview';
+  document.getElementById('view-overview').innerHTML=`<div class="p-header"><div><div class="p-title">${domain}</div><div class="p-sub">Loading...</div></div></div><div style="padding:24px;color:var(--text2)"><span class="spinner"></span>Loading status sheet...</div>`;
+
+  const tasks=await getTasksForClient(activeClient);
+
+  document.getElementById('view-overview').innerHTML=`
+    <div class="p-header">
+      <div><div class="p-title">${domain}</div><div class="p-sub">Client overview · <a href="https://${domain}" target="_blank">${domain}</a></div></div>
+      <button class="btn btn-o" onclick="showView('impact')">View impact →</button>
+    </div>
+    <div class="metrics" id="overview-metrics"></div>
+    <div class="grid-2">
+      <div class="section"><div class="section-title">By work type</div><div id="overview-by-type"></div></div>
+      <div class="section"><div class="section-title">Implementation status</div><div id="overview-by-status"></div></div>
+    </div>
+    ${!tasks.length?`<div class="warn-banner">⚠ No status sheet found for ${domain}. <a href="#" onclick="promptLinkSheet('${activeClient}');return false">Link a sheet manually →</a></div>`:''}
+  `;
+
+  if(!tasks.length){renderEmptyMetrics();return;}
+
+  const impl=tasks.filter(t=>t.status==='implemented').length;
+  const blocked=tasks.filter(t=>t.status==='blocked').length;
+  const pending=tasks.filter(t=>t.status==='pending').length;
+  const pct=tasks.length?Math.round(impl/tasks.length*100):0;
+
   document.getElementById('overview-metrics').innerHTML=`
-    <div class="metric"><div class="metric-label">Total deliverables</div><div class="metric-value">${all.length}</div></div>
-    <div class="metric"><div class="metric-label">Implemented</div><div class="metric-value up">${impl}</div><div class="metric-sub">${pct}% of total</div></div>
-    <div class="metric"><div class="metric-label">Pending</div><div class="metric-value muted">${pending}</div></div>
-    <div class="metric"><div class="metric-label">Blocked</div><div class="metric-value down">${blocked}</div></div>`;
-  const bar=(n,tot)=>`<div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${tot?Math.round(n/tot*100):0}%;background:var(--green);border-radius:3px"></div></div>`;
-  document.getElementById('overview-by-type').innerHTML=['on-page','blog','technical','aeo','meta'].map(type=>{
-    const n=all.filter(t=>t.status==='implemented'&&t.type===type).length;
-    const tot=all.filter(t=>t.type===type).length;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <span style="width:100px;color:var(--text2)">${TYPE_LABELS[type]}</span><span style="width:36px;font-weight:500">${n}/${tot}</span>${bar(n,tot)}<span style="width:28px;font-size:11px;color:var(--text3)">${tot?Math.round(n/tot*100):0}%</span></div>`;
-  }).join('');
-  document.getElementById('overview-by-client').innerHTML=['icruise','alaska','cheap'].map(c=>{
-    const ct=all.filter(t=>t.client===c);
-    const ci=ct.filter(t=>t.status==='implemented').length;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <span style="width:120px;color:var(--text2)">${CLIENT_NAMES[c]}</span><span style="width:36px;font-weight:500">${ci}/${ct.length}</span>${bar(ci,ct.length)}<span style="width:28px;font-size:11px;color:var(--text3)">${ct.length?Math.round(ci/ct.length*100):0}%</span></div>`;
-  }).join('');
+    <div class="metric"><div class="mlabel">Total deliverables</div><div class="mval">${tasks.length}</div></div>
+    <div class="metric"><div class="mlabel">Implemented</div><div class="mval up">${impl}</div><div class="msub">${pct}% of total</div></div>
+    <div class="metric"><div class="mlabel">Pending</div><div class="mval muted">${pending}</div></div>
+    <div class="metric"><div class="mlabel">Blocked</div><div class="mval down">${blocked}</div></div>`;
+
+  const bar=(n,tot,color='var(--green)')=>`<div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${tot?Math.round(n/tot*100):0}%;background:${color};border-radius:3px"></div></div>`;
+
+  document.getElementById('overview-by-type').innerHTML=
+    Object.entries(TYPE_LABELS).map(([type,label])=>{
+      const n=tasks.filter(t=>t.status==='implemented'&&t.type===type).length;
+      const tot=tasks.filter(t=>t.type===type).length;
+      const pct=tot?Math.round(n/tot*100):0;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <span style="width:90px;color:var(--text2)">${label}</span>
+        <span style="width:36px;font-weight:500">${n}/${tot}</span>
+        ${bar(n,tot)}<span style="width:28px;font-size:11px;color:var(--text3)">${pct}%</span></div>`;
+    }).join('');
+
+  document.getElementById('overview-by-status').innerHTML=
+    [['implemented','Implemented',pct,'var(--green)'],['pending','Pending',tasks.length?Math.round(pending/tasks.length*100):0,'#BA7517'],['blocked','Blocked',tasks.length?Math.round(blocked/tasks.length*100):0,'var(--red)']].map(([s,label,p,color])=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <span style="width:90px;color:var(--text2)">${label}</span>
+        <span style="width:36px;font-weight:500">${tasks.filter(t=>t.status===s).length}</span>
+        ${bar(tasks.filter(t=>t.status===s).length,tasks.length,color)}
+        <span style="width:28px;font-size:11px;color:var(--text3)">${p}%</span></div>`).join('');
 }
 
-/* ---- Work list ---- */
-function renderWorkList(){
-  const tasks=TASKS.filter(t=>{
-    if(activeWorkClient!=='all'&&t.client!==activeWorkClient)return false;
-    if(activeWorkStatus!=='all'&&t.status!==activeWorkStatus)return false;
-    return true;
+function renderOverviewAgency(){
+  document.getElementById('view-overview').innerHTML=`
+    <div class="p-header"><div><div class="p-title">Agency overview</div><div class="p-sub">${allProperties.length} GSC properties loaded</div></div></div>
+    <div class="metrics">
+      <div class="metric"><div class="mlabel">Total clients</div><div class="mval">${allProperties.length}</div></div>
+      <div class="metric"><div class="mlabel">GSC connected</div><div class="mval up">${allProperties.length}</div></div>
+      <div class="metric"><div class="mlabel">Semrush</div><div class="mval up">Connected</div></div>
+      <div class="metric"><div class="mlabel">Drive access</div><div class="mval up">Connected</div></div>
+    </div>
+    <div class="section"><div class="section-title">Select a client from the sidebar to get started</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">
+        <p>The tool will automatically search Google Drive for a status sheet matching the client domain.</p>
+        <p style="margin-top:8px">Once a sheet is found, you'll see work delivered, GSC impact data, and Semrush rankings all in one place.</p>
+      </div>
+    </div>`;
+}
+
+function renderEmptyMetrics(){
+  const el=document.getElementById('overview-metrics');
+  if(el) el.innerHTML=`
+    <div class="metric"><div class="mlabel">Total deliverables</div><div class="mval muted">—</div></div>
+    <div class="metric"><div class="mlabel">Implemented</div><div class="mval muted">—</div></div>
+    <div class="metric"><div class="mlabel">Pending</div><div class="mval muted">—</div></div>
+    <div class="metric"><div class="mlabel">Blocked</div><div class="mval muted">—</div></div>`;
+}
+
+// ── Work Delivered ────────────────────────────────────
+async function renderWork(){
+  if(!activeClient){
+    document.getElementById('work-client-label').textContent='Select a client from the sidebar';
+    document.getElementById('work-list').innerHTML='<div class="empty"><div class="empty-title">Select a client</div></div>';
+    return;
+  }
+  const domain=cleanDomain(activeClient);
+  document.getElementById('work-client-label').textContent=domain;
+  document.getElementById('work-refresh-btn').style.display='inline-block';
+  document.getElementById('work-list').innerHTML='<div style="padding:16px;color:var(--text2)"><span class="spinner"></span>Loading status sheet...</div>';
+  document.getElementById('work-sheet-banner').style.display='none';
+
+  const tasks=await getTasksForClient(activeClient);
+
+  if(!tasks.length){
+    document.getElementById('work-sheet-banner').style.display='flex';
+    document.getElementById('work-sheet-msg').innerHTML=`No status sheet found for <strong>${domain}</strong>. <a href="#" onclick="promptLinkSheet('${activeClient}');return false">Link a sheet manually →</a>`;
+    document.getElementById('work-list').innerHTML='';
+    return;
+  }
+  renderWorkList(tasks);
+}
+
+function renderWorkList(tasks){
+  const filtered=tasks.filter(t=>{
+    if(activeWorkStatus==='all') return true;
+    return t.status===activeWorkStatus;
   });
-  document.getElementById('work-list').innerHTML=tasks.length?tasks.map(t=>`
+  document.getElementById('work-list').innerHTML=filtered.length?filtered.map(t=>`
     <div class="card">
       <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
         <div style="flex:1">
-          <div class="card-title">${t.task}</div>
-          <div class="card-meta">
-            <span>${CLIENT_NAMES[t.client]}</span>
-            <span>Delivered ${fmtDate(t.delivered)}</span>
+          <div class="ctitle">${t.task}</div>
+          <div class="cmeta">
+            ${t.delivered?`<span>Delivered ${fmtDate(t.delivered)}</span>`:''}
             ${t.implemented?`<span>Implemented ${fmtDate(t.implemented)}</span>`:''}
-            ${t.notes?`<span style="color:var(--text3)">${t.notes}</span>`:''}
+            ${t.notes?`<span style="color:var(--text3)">${t.notes.slice(0,80)}${t.notes.length>80?'...':''}</span>`:''}
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0">${typeBadge(t.type)}${statusBadge(t)}</div>
       </div>
-    </div>`).join(''):'<div class="empty"><div class="empty-title">No tasks match this filter</div></div>';
+    </div>`).join('')
+    :'<div class="empty"><div class="empty-title">No tasks match this filter</div></div>';
 }
 
-/* ---- Google Docs URL extraction ---- */
-async function getUrlsFromDoc(docId){
-  if(!docId)return null;
-  if(docUrlCache[docId])return docUrlCache[docId];
-  try{
-    const res=await fetch(`https://www.googleapis.com/drive/v3/files/${docId}/export?mimeType=text/plain`,{
-      headers:{Authorization:'Bearer '+accessToken}
-    });
-    if(!res.ok)return null;
-    const text=await res.text();
-    // Extract URLs — look for icruise.com, alaskacruises.com, cruisecheap.com URLs
-    const urlRegex=/https?:\/\/(www\.)?(icruise\.com|alaskacruises\.com|cruisecheap\.com)[^\s\n\r\)>\"\']+/gi;
-    const matches=[...new Set(text.match(urlRegex)||[])];
-    // Filter to actual page URLs (not API/src links)
-    const pageUrls=matches.filter(u=>!u.includes('/c/src.php')&&!u.includes('?')&&u.length>30).slice(0,30);
-    docUrlCache[docId]=pageUrls.length?pageUrls:null;
-    return docUrlCache[docId];
-  }catch(e){return null;}
-}
-
-/* ---- GSC fetch ---- */
-async function fetchGSCForUrls(property,urls,startDate,endDate){
-  const key=property+urls.join(',')+startDate+endDate;
-  if(gscCache[key])return gscCache[key];
-  try{
-    const res=await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`,{
-      method:'POST',
-      headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
-      body:JSON.stringify({startDate,endDate,dimensions:['page'],rowLimit:500,
-        dimensionFilterGroups:urls.length?[{filters:urls.map(u=>({dimension:'page',operator:'equals',expression:u}))}]:[]
-      })
-    });
-    if(!res.ok){const e=await res.json();return{error:e?.error?.message||'API error'};}
-    const data=await res.json();
-    const rows=(data.rows||[]);
-    gscCache[key]=rows;
-    return rows;
-  }catch(e){return null;}
-}
-
-async function fetchGSCSite(property,startDate,endDate){
-  const key='site'+property+startDate+endDate;
-  if(gscCache[key])return gscCache[key];
-  try{
-    const res=await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`,{
-      method:'POST',
-      headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
-      body:JSON.stringify({startDate,endDate,dimensions:['page'],rowLimit:500})
-    });
-    if(!res.ok)return null;
-    const data=await res.json();
-    gscCache[key]=data.rows||[];
-    return gscCache[key];
-  }catch(e){return null;}
-}
-
-function sumRows(rows){
-  if(!rows||!Array.isArray(rows)||!rows.length)return{clicks:0,impressions:0,position:0,count:0};
-  const clicks=rows.reduce((s,r)=>s+(r.clicks||0),0);
-  const impressions=rows.reduce((s,r)=>s+(r.impressions||0),0);
-  const position=rows.reduce((s,r)=>s+(r.position||0),0)/rows.length;
-  return{clicks,impressions,position:+position.toFixed(1),count:rows.length};
-}
-
-/* ---- Impact view ---- */
-async function renderImpact(){
-  const tasks=TASKS.filter(t=>{
-    if(activeImpactClient!=='all'&&t.client!==activeImpactClient)return false;
-    return t.status==='implemented'&&t.implemented;
+function filterStatus(s){
+  activeWorkStatus=s;
+  ['all','impl','pend','block'].forEach((x,i)=>{
+    const el=document.getElementById('sf-'+x);
+    if(el) el.classList.toggle('active',['all','implemented','pending','blocked'][i]===s);
   });
+  if(activeClient&&clientTasks[activeClient]) renderWorkList(clientTasks[activeClient]);
+}
+
+// ── Impact ────────────────────────────────────────────
+async function renderImpact(){
+  if(!activeClient){
+    document.getElementById('impact-client-label').textContent='Select a client from the sidebar';
+    document.getElementById('impact-list').innerHTML='<div class="empty"><div class="empty-title">Select a client</div></div>';
+    return;
+  }
+  const domain=cleanDomain(activeClient);
+  document.getElementById('impact-client-label').textContent=domain;
+
+  const tasks=await getTasksForClient(activeClient);
+  const implTasks=tasks.filter(t=>t.status==='implemented'&&t.implemented);
+
   const el=document.getElementById('impact-list');
-  if(!tasks.length){el.innerHTML='<div class="empty"><div class="empty-title">No implemented tasks.</div></div>';return;}
+  if(!implTasks.length){
+    el.innerHTML=`<div class="empty"><div class="empty-title">No implemented tasks found</div><div style="font-size:13px;color:var(--text2);margin-top:6px">${!tasks.length?`No status sheet linked for ${domain}.`:'All tasks are pending or blocked.'}</div></div>`;
+    return;
+  }
+
   const daysBefore=parseInt(document.getElementById('days-before').value||60);
   const daysAfter=parseInt(document.getElementById('days-after').value||60);
 
-  el.innerHTML=tasks.map(t=>{
+  el.innerHTML=implTasks.map(t=>{
     const sid='s'+Math.random().toString(36).slice(2,8);
     t._sid=sid;
     return `<div class="card">
       <div style="display:flex;align-items:start;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:0">
-          <div class="card-title">${t.task}</div>
-          <div class="card-meta"><span>${CLIENT_NAMES[t.client]}</span><span>Implemented ${fmtDate(t.implemented)}</span>${t.docId?`<a href="https://docs.google.com/document/d/${t.docId}" target="_blank" style="font-size:11px">View doc →</a>`:''}</div>
-          <div id="${sid}" style="margin-top:12px"><span class="spinner"></span><span style="font-size:12px;color:var(--text2)">${t.docId?'Reading deliverable doc...':'Fetching GSC data...'}</span></div>
+          <div class="ctitle">${t.task}</div>
+          <div class="cmeta">
+            <span>Implemented ${fmtDate(t.implemented)}</span>
+            ${t.publishedUrl?`<a href="${t.publishedUrl}" target="_blank" style="font-size:11px">View page →</a>`:t.docId?`<a href="https://docs.google.com/document/d/${t.docId}" target="_blank" style="font-size:11px">View doc →</a>`:''}
+          </div>
+          <div id="${sid}" style="margin-top:10px"><span class="spinner"></span><span style="font-size:12px;color:var(--text2)">${t.publishedUrl?'Fetching GSC for published page...':t.docId?'Reading deliverable doc...':'Fetching site-wide GSC...'}</span></div>
         </div>
-        <div style="flex-shrink:0">${typeBadge(t.type)}</div>
+        <div>${typeBadge(t.type)}</div>
       </div>
     </div>`;
   }).join('');
 
-  for(const t of tasks){
+  for(const t of implTasks){
     const el2=document.getElementById(t._sid);
-    if(!el2)continue;
-    const prop=propForClient(t.client);
-    const b0=addDays(t.implemented,-daysBefore),b1=addDays(t.implemented,-1);
-    const a0=t.implemented,a1=addDays(t.implemented,daysAfter);
+    if(!el2) continue;
 
-    // Get URLs from doc if available
+    // Resolve URLs
     let urls=[];
-    if(t.docId){
-      el2.innerHTML='<span class="spinner"></span><span style="font-size:12px;color:var(--text2)">Reading deliverable doc for affected pages...</span>';
+    if(t.publishedUrl){
+      urls=[t.publishedUrl];
+    } else if(t.docId){
       const docUrls=await getUrlsFromDoc(t.docId);
-      if(docUrls&&docUrls.length){
-        urls=docUrls;
-        el2.innerHTML=`<span class="spinner"></span><span style="font-size:12px;color:var(--text2)">Fetching GSC data for ${urls.length} affected page${urls.length>1?'s':''}...</span>`;
-      } else {
-        el2.innerHTML='<span class="spinner"></span><span style="font-size:12px;color:var(--text2)">Fetching site-wide GSC data...</span>';
-      }
+      if(docUrls&&docUrls.length) urls=docUrls;
     }
 
-    // Fetch GSC — filtered to specific URLs if we have them, otherwise site-wide
-    let bRows, aRows;
+    const b0=addDays(t.implemented,-daysBefore),b1=addDays(t.implemented,-1);
+    const a0=t.implemented,a1=addDays(t.implemented,daysAfter);
+    let bRows,aRows;
     if(urls.length){
-      [bRows,aRows]=await Promise.all([
-        fetchGSCForUrls(prop,urls,b0,b1),
-        fetchGSCForUrls(prop,urls,a0,a1)
-      ]);
+      el2.innerHTML=`<span class="spinner"></span><span style="font-size:12px;color:var(--text2)">Fetching GSC for ${urls.length} page${urls.length>1?'s':''}...</span>`;
+      [bRows,aRows]=await Promise.all([fetchGSCForUrls(activeClient,urls,b0,b1),fetchGSCForUrls(activeClient,urls,a0,a1)]);
     } else {
-      [bRows,aRows]=await Promise.all([
-        fetchGSCSite(prop,b0,b1),
-        fetchGSCSite(prop,a0,a1)
-      ]);
+      [bRows,aRows]=await Promise.all([fetchGSCSite(activeClient,b0,b1),fetchGSCSite(activeClient,a0,a1)]);
     }
 
     if(bRows&&bRows.error){el2.innerHTML=`<div style="font-size:12px;color:var(--red)">API error: ${bRows.error}</div>`;continue;}
-    if(!bRows||!aRows){el2.innerHTML=`<div style="font-size:12px;color:var(--text2)">No data returned. Token may have expired.</div>`;continue;}
+    if(!bRows||!aRows){el2.innerHTML=`<div style="font-size:12px;color:var(--text2)">No data — token may have expired.</div>`;continue;}
 
     const b=sumRows(bRows),a=sumRows(aRows);
     const dClicks=a.clicks-b.clicks;
@@ -638,40 +810,37 @@ async function renderImpact(){
     const dPos=b.position>0?(b.position-a.position).toFixed(1):null;
     const pct=pctStr(a.clicks,b.clicks);
 
-    // Build page-level breakdown if we have URL-filtered data
     const pageRows=urls.length&&Array.isArray(aRows)&&aRows.length?
       aRows.map(ar=>{
         const url=ar.keys?ar.keys[0]:ar.page||'';
-        const br=bRows.find?.(r=>(r.keys?r.keys[0]:r.page)===url)||{clicks:0,impressions:0,position:0};
+        const br=(bRows||[]).find?.(r=>(r.keys?r.keys[0]:r.page)===url)||{clicks:0,impressions:0,position:0};
         const dc=ar.clicks-(br.clicks||0);
         const dp=br.position>0?(br.position-ar.position).toFixed(1):null;
-        return{url,bClicks:br.clicks||0,aClicks:ar.clicks,dc,dp,aPos:ar.position?.toFixed(1)};
-      }).sort((a,b)=>b.aClicks-a.aClicks)
-      :[];
+        return{url,bC:br.clicks||0,aC:ar.clicks,dc,dp,aP:ar.position?.toFixed(1)};
+      }).sort((a,b)=>b.aC-a.aC):[];
 
     el2.innerHTML=`
-      <div class="impact-summary">
-        <div class="is-cell"><div class="is-label">Clicks before (${daysBefore}d)</div><div class="is-val">${b.clicks.toLocaleString()}</div></div>
-        <div class="is-cell"><div class="is-label">Clicks after (${daysAfter}d)</div><div class="is-val ${dClicks>=0?'up':'down'}">${a.clicks.toLocaleString()}${pct?` <span style="font-size:11px;font-weight:400">(${pct})</span>`:''}</div></div>
-        <div class="is-cell"><div class="is-label">Avg. position shift</div><div class="is-val ${dPos&&parseFloat(dPos)>0?'up':''}">${dPos!==null?(parseFloat(dPos)>0?'+':'')+dPos+' pos':'—'}</div></div>
-        <div class="is-cell"><div class="is-label">Impressions before</div><div class="is-val">${b.impressions.toLocaleString()}</div></div>
-        <div class="is-cell"><div class="is-label">Impressions after</div><div class="is-val ${dImpr>=0?'up':'down'}">${a.impressions.toLocaleString()}</div></div>
-        <div class="is-cell"><div class="is-label">${urls.length?'Pages tracked':'Data scope'}</div><div class="is-val" style="font-size:13px">${urls.length?urls.length+' pages':'Site-wide'}</div></div>
+      <div class="igrid">
+        <div><div class="ilabel">Clicks before (${daysBefore}d)</div><div class="ival">${b.clicks.toLocaleString()}</div></div>
+        <div><div class="ilabel">Clicks after (${daysAfter}d)</div><div class="ival ${dClicks>=0?'up':'down'}">${a.clicks.toLocaleString()}${pct?` <span style="font-size:11px;font-weight:400">(${pct})</span>`:''}</div></div>
+        <div><div class="ilabel">Avg. position shift</div><div class="ival ${dPos&&parseFloat(dPos)>0?'up':''}">${dPos!==null?(parseFloat(dPos)>0?'+':'')+dPos+' pos':'—'}</div></div>
+        <div><div class="ilabel">Impressions before</div><div class="ival">${b.impressions.toLocaleString()}</div></div>
+        <div><div class="ilabel">Impressions after</div><div class="ival ${dImpr>=0?'up':'down'}">${a.impressions.toLocaleString()}</div></div>
+        <div><div class="ilabel">${urls.length?'Pages tracked':'Data scope'}</div><div class="ival" style="font-size:13px">${urls.length?urls.length+' pages':'Site-wide'}</div></div>
       </div>
       ${pageRows.length?`
         <button class="expand-btn" onclick="togglePages(this)">▶ Show page breakdown (${pageRows.length} pages)</button>
         <div class="page-rows" style="display:none">
-          <div class="page-row header"><span>Page</span><span class="val">Before</span><span class="val">After</span><span class="val">Δ Clicks</span><span class="val">Pos shift</span><span class="val">Avg pos</span></div>
+          <div class="page-row hdr"><span>Page</span><span class="pval">Before</span><span class="pval">After</span><span class="pval">Δ Clicks</span><span class="pval">Pos shift</span><span class="pval">Pos after</span></div>
           ${pageRows.map(r=>`<div class="page-row">
-            <a class="page-url" href="${r.url}" target="_blank" title="${r.url}">${r.url.replace(/https?:\/\/(www\.)?/,'')}</a>
-            <span class="val">${r.bClicks}</span>
-            <span class="val">${r.aClicks}</span>
-            <span class="val ${r.dc>=0?'up':'down'}">${r.dc>=0?'+':''}${r.dc}</span>
-            <span class="val ${r.dp&&parseFloat(r.dp)>0?'up':''}">${r.dp!==null?(parseFloat(r.dp)>0?'+':'')+r.dp:'—'}</span>
-            <span class="val">${r.aPos||'—'}</span>
+            <a class="purl" href="${r.url}" target="_blank" title="${r.url}">${r.url.replace(/https?:\/\/(www\.)?/,'')}</a>
+            <span class="pval">${r.bC}</span><span class="pval">${r.aC}</span>
+            <span class="pval ${r.dc>=0?'up':'down'}">${r.dc>=0?'+':''}${r.dc}</span>
+            <span class="pval ${r.dp&&parseFloat(r.dp)>0?'up':''}">${r.dp!==null?(parseFloat(r.dp)>0?'+':'')+r.dp:'—'}</span>
+            <span class="pval">${r.aP||'—'}</span>
           </div>`).join('')}
         </div>`:''}
-      ${!urls.length&&!t.docId?`<div style="margin-top:8px;font-size:11px;color:var(--text3)">No deliverable doc linked — showing site-wide GSC data. Add a doc ID to this task to see page-level impact.</div>`:''}`;
+      ${!urls.length?`<div style="margin-top:6px;font-size:11px;color:var(--text3)">No deliverable doc linked — showing site-wide GSC data.</div>`:''}`;
   }
 }
 
@@ -682,112 +851,214 @@ function togglePages(btn){
   btn.textContent=(open?'▶':'▼')+btn.textContent.slice(1);
 }
 
-/* ---- Semrush ---- */
+// ── Semrush ───────────────────────────────────────────
 async function renderSemrush(){
-  const domain=CLIENT_DOMAINS[activeSemrushClient]||'icruise.com';
-  if(document.getElementById('stab-rankings').classList.contains('active'))renderSemrushRankings(domain);
-  else renderSemrushAudit(domain);
+  if(!activeClient){
+    document.getElementById('semrush-client-label').textContent='Select a client from the sidebar';
+    document.getElementById('semrush-rankings').innerHTML='<div class="empty"><div class="empty-title">Select a client</div></div>';
+    return;
+  }
+  const domain=cleanDomain(activeClient);
+  document.getElementById('semrush-client-label').textContent=domain;
+  const tab=document.getElementById('stab-rankings').classList.contains('active')?'rankings':'overview';
+  if(tab==='rankings') renderSemrushRankings(domain);
+  else renderSemrushOverview(domain);
 }
 
 async function renderSemrushRankings(domain){
   const el=document.getElementById('semrush-rankings');
-  el.innerHTML='<div style="padding:20px;color:var(--text2)"><span class="spinner"></span>Loading keyword rankings...</div>';
+  el.innerHTML='<div style="padding:20px;color:var(--text2)"><span class="spinner"></span>Loading rankings...</div>';
   try{
-    const url=`https://api.semrush.com/?type=domain_organic&key=${SEMRUSH_KEY}&display_limit=50&export_columns=Ph,Po,Nq,Tr,Ur&domain=${domain}&database=us`;
-    const res=await fetch(url);
+    const res=await fetch(`https://api.semrush.com/?type=domain_organic&key=${SEMRUSH_KEY}&display_limit=50&export_columns=Ph,Po,Nq,Tr,Ur&domain=${domain}&database=us`);
     const text=await res.text();
     const lines=text.trim().split('\n').slice(1).filter(l=>l.trim());
-    if(!lines.length){el.innerHTML='<div class="empty"><div class="empty-title">No ranking data found</div></div>';return;}
+    if(!lines.length){el.innerHTML='<div class="empty"><div class="empty-title">No ranking data found</div><div style="font-size:13px;color:var(--text2);margin-top:6px">This domain may not have data in Semrush yet.</div></div>';return;}
     const rows=lines.map(l=>{const[kw,pos,vol,tr,u]=l.split(';');return{kw,pos:parseInt(pos)||0,vol:parseInt(vol)||0,tr:parseFloat(tr)||0,u};}).sort((a,b)=>a.pos-b.pos);
     el.innerHTML=`<div style="overflow-x:auto"><table class="data-table">
       <thead><tr><th>Keyword</th><th>Position</th><th>Search volume</th><th>Traffic %</th><th>URL</th></tr></thead>
       <tbody>${rows.map(r=>`<tr>
         <td style="font-weight:500">${r.kw}</td>
-        <td><span class="trend ${r.pos<=3?'up':r.pos<=10?'flat':'down'}">#${r.pos}</span></td>
+        <td><span class="trend ${r.pos<=3?'up':r.pos<=10?'mid':'down'}">#${r.pos}</span></td>
         <td>${r.vol.toLocaleString()}</td>
         <td>${r.tr.toFixed(2)}%</td>
-        <td style="font-size:11px;color:var(--text3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.u||'—'}</td>
+        <td style="font-size:11px;color:var(--text3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.u||''}">${r.u||'—'}</td>
       </tr>`).join('')}</tbody></table></div>`;
-  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-title">Semrush error: ${e.message}</div></div>`;}
+  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-title">Semrush error</div><div style="font-size:13px;color:var(--text2);margin-top:6px">${e.message}</div></div>`;}
 }
 
-async function renderSemrushAudit(domain){
-  const el=document.getElementById('semrush-audit');
+async function renderSemrushOverview(domain){
+  const el=document.getElementById('semrush-overview');
   el.innerHTML='<div style="padding:20px;color:var(--text2)"><span class="spinner"></span>Loading domain data...</div>';
   try{
-    const url=`https://api.semrush.com/?type=domain_rank&key=${SEMRUSH_KEY}&export_columns=Dn,Rk,Or,Ot,Oc,Ad&domain=${domain}&database=us`;
-    const res=await fetch(url);
+    const res=await fetch(`https://api.semrush.com/?type=domain_rank&key=${SEMRUSH_KEY}&export_columns=Dn,Rk,Or,Ot,Oc&domain=${domain}&database=us`);
     const text=await res.text();
     const lines=text.trim().split('\n');
     if(lines.length<2){el.innerHTML='<div class="empty"><div class="empty-title">No data available</div></div>';return;}
-    const[,vals]=lines;
-    const[,rank,org_kw,org_traffic,org_cost]=vals.split(';');
+    const vals=lines[1].split(';');
+    const rank=parseInt(vals[1])||0,kw=parseInt(vals[2])||0,traffic=parseInt(vals[3])||0,cost=parseInt(vals[4])||0;
     el.innerHTML=`
       <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
-        <div class="metric"><div class="metric-label">Semrush rank</div><div class="metric-value">#${parseInt(rank).toLocaleString()}</div></div>
-        <div class="metric"><div class="metric-label">Organic keywords</div><div class="metric-value up">${parseInt(org_kw).toLocaleString()}</div></div>
-        <div class="metric"><div class="metric-label">Organic traffic/mo</div><div class="metric-value up">${parseInt(org_traffic).toLocaleString()}</div></div>
+        <div class="metric"><div class="mlabel">Semrush rank</div><div class="mval">${rank?'#'+rank.toLocaleString():'—'}</div></div>
+        <div class="metric"><div class="mlabel">Organic keywords</div><div class="mval up">${kw.toLocaleString()}</div></div>
+        <div class="metric"><div class="mlabel">Organic traffic/mo</div><div class="mval up">${traffic.toLocaleString()}</div></div>
       </div>
       <div class="section" style="margin-top:16px">
-        <div class="section-title">${domain} — domain overview</div>
-        <div style="font-size:13px;color:var(--text2)">Estimated organic traffic value: <strong>$${parseInt(org_cost).toLocaleString()}/mo</strong></div>
-        <div style="margin-top:10px;font-size:12px;color:var(--text3)">Full site audit (crawl errors, broken links) requires a Semrush Project. <a href="https://www.semrush.com/projects/" target="_blank">Set up a project →</a></div>
+        <div class="section-title">${domain}</div>
+        <div style="font-size:13px;color:var(--text2)">Estimated organic traffic value: <strong>$${cost.toLocaleString()}/mo</strong></div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text3)">Full site audit requires a Semrush Project. <a href="https://www.semrush.com/projects/" target="_blank">Set up →</a></div>
       </div>`;
-  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-title">Semrush error: ${e.message}</div></div>`;}
+  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-title">Semrush error</div><div style="font-size:13px;color:var(--text2);margin-top:6px">${e.message}</div></div>`;}
 }
 
 function showSemrushTab(tab){
-  ['rankings','audit'].forEach(t=>{document.getElementById('semrush-'+t).style.display=tab===t?'block':'none';document.getElementById('stab-'+t).classList.toggle('active',t===tab);});
+  ['rankings','overview'].forEach(t=>{
+    document.getElementById('semrush-'+t).style.display=tab===t?'block':'none';
+    document.getElementById('stab-'+t).classList.toggle('active',t===tab);
+  });
   renderSemrush();
 }
 
-/* ---- Forecast ---- */
+// ── Forecast ──────────────────────────────────────────
+async function renderForecast(){
+  const tasks=activeClient?await getTasksForClient(activeClient):[];
+  renderHist(tasks);
+}
+
 function runForecast(){
   const type=document.getElementById('fc-type').value;
   const pages=parseInt(document.getElementById('fc-pages').value)||10;
-  const client=document.getElementById('fc-client').value;
+  const domain=activeClient?cleanDomain(activeClient):'client';
   const est={'on-page':{c:[8,18],p:[1.5,4]},'blog':{c:[200,600],p:[0,0]},'technical':{c:[5,12],p:[0.5,2]},'aeo':{c:[15,40],p:[2,5]},'meta':{c:[12,25],p:[1,3]}};
   const e=est[type]||est['on-page'];
   const lo=Math.round(e.c[0]*pages),hi=Math.round(e.c[1]*pages);
-  const histCount=TASKS.filter(t=>t.status==='implemented'&&t.type===type).length;
+  const tasks=activeClient&&clientTasks[activeClient]?clientTasks[activeClient]:[];
+  const histCount=tasks.filter(t=>t.status==='implemented'&&t.type===type).length;
   document.getElementById('forecast-result').innerHTML=`
     <div class="section-title">Estimated impact</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">${pages} ${TYPE_LABELS[type].toLowerCase()} pages · ${CLIENT_NAMES[client]}</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">${pages} ${TYPE_LABELS[type].toLowerCase()} pages · ${domain}</div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="metric"><div class="metric-label">Additional clicks/mo</div><div class="metric-value up">${lo.toLocaleString()}–${hi.toLocaleString()}</div></div>
-      ${e.p[1]>0?`<div class="metric"><div class="metric-label">Avg. position gain</div><div class="metric-value up">+${e.p[0]}–${e.p[1]} pos</div></div>`:`<div class="metric"><div class="metric-label">Traffic type</div><div class="metric-value muted">New pages</div></div>`}
-      <div class="metric"><div class="metric-label">Confidence</div><div class="metric-value muted">Medium</div><div class="metric-sub">${histCount} historical matches</div></div>
+      <div class="metric"><div class="mlabel">Additional clicks/mo</div><div class="mval up">${lo.toLocaleString()}–${hi.toLocaleString()}</div></div>
+      ${e.p[1]>0?`<div class="metric"><div class="mlabel">Avg. position gain</div><div class="mval up">+${e.p[0]}–${e.p[1]} pos</div></div>`:`<div class="metric"><div class="mlabel">Traffic type</div><div class="mval muted">New pages</div></div>`}
+      <div class="metric"><div class="mlabel">Confidence</div><div class="mval muted">Medium</div><div class="msub">${histCount} historical matches</div></div>
     </div>`;
-  renderHist();
+  renderHist(activeClient&&clientTasks[activeClient]?clientTasks[activeClient]:[]);
 }
 
-function renderHist(){
-  document.getElementById('hist-summary').innerHTML=['on-page','blog','technical','aeo','meta'].map(type=>{
-    const n=TASKS.filter(t=>t.status==='implemented'&&t.type===type).length;
-    const tot=TASKS.filter(t=>t.type===type).length;
+function renderHist(tasks){
+  document.getElementById('hist-summary').innerHTML=Object.entries(TYPE_LABELS).map(([type,label])=>{
+    const n=tasks.filter(t=>t.status==='implemented'&&t.type===type).length;
+    const tot=tasks.filter(t=>t.type===type).length;
     const pct=tot?Math.round(n/tot*100):0;
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <span style="width:110px;color:var(--text2)">${TYPE_LABELS[type]}</span>
+      <span style="width:110px;color:var(--text2)">${label}</span>
       <span style="width:36px;font-weight:500">${n}/${tot}</span>
-      <div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--green);border-radius:3px"></div></div>
+      <div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:var(--green);border-radius:3px"></div>
+      </div>
       <span style="width:28px;font-size:11px;color:var(--text3)">${pct}%</span>
     </div>`;
   }).join('');
 }
 
-/* ---- Navigation ---- */
-function showView(view){
-  ['overview','work','impact','semrush','forecast'].forEach(v=>{
-    document.getElementById('view-'+v).style.display=v===view?'block':'none';
-    document.getElementById('nav-'+v).classList.toggle('active',v===view);
-  });
-  if(view==='work')renderWorkList();
-  if(view==='impact')renderImpact();
-  if(view==='semrush')renderSemrush();
-  if(view==='forecast')renderHist();
+// ── Manual sheet link ─────────────────────────────────
+function promptLinkSheet(prop){
+  const domain=cleanDomain(prop);
+  const url=prompt(`Paste the Google Sheets URL for ${domain}'s status sheet:`);
+  if(!url) return;
+  const m=url.match(/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if(!m){alert('Could not find a spreadsheet ID in that URL.');return;}
+  const sheetId=m[1];
+  localStorage.setItem('sheet_'+domain,sheetId);
+  delete clientTasks[prop];
+  showView('work');
 }
 
-/* ---- Boot ---- */
+// ── GSC helpers ───────────────────────────────────────
+async function fetchGSCForUrls(prop,urls,startDate,endDate){
+  const key=prop+urls.join(',')+startDate+endDate;
+  if(gscCache[key]) return gscCache[key];
+  try{
+    const res=await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(prop)}/searchAnalytics/query`,{
+      method:'POST',
+      headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
+      body:JSON.stringify({startDate,endDate,dimensions:['page'],rowLimit:500,
+        dimensionFilterGroups:[{filters:urls.map(u=>({dimension:'page',operator:'equals',expression:u}))}]
+      })
+    });
+    if(!res.ok){const e=await res.json();return{error:e?.error?.message||'error'};}
+    const data=await res.json();
+    gscCache[key]=data.rows||[];
+    return gscCache[key];
+  }catch(e){return null;}
+}
+
+async function fetchGSCSite(prop,startDate,endDate){
+  const key='site'+prop+startDate+endDate;
+  if(gscCache[key]) return gscCache[key];
+  try{
+    const res=await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(prop)}/searchAnalytics/query`,{
+      method:'POST',
+      headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
+      body:JSON.stringify({startDate,endDate,dimensions:['page'],rowLimit:500})
+    });
+    if(!res.ok) return null;
+    const data=await res.json();
+    gscCache[key]=data.rows||[];
+    return gscCache[key];
+  }catch(e){return null;}
+}
+
+function sumRows(rows){
+  if(!rows||!Array.isArray(rows)||!rows.length) return{clicks:0,impressions:0,position:0};
+  const clicks=rows.reduce((s,r)=>s+(r.clicks||0),0);
+  const impressions=rows.reduce((s,r)=>s+(r.impressions||0),0);
+  const position=rows.reduce((s,r)=>s+(r.position||0),0)/rows.length;
+  return{clicks,impressions,position:+position.toFixed(1)};
+}
+
+async function getUrlsFromDoc(docId){
+  if(docCache[docId]) return docCache[docId];
+  try{
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files/${docId}/export?mimeType=text/plain`,{
+      headers:{Authorization:'Bearer '+accessToken}
+    });
+    if(!res.ok) return null;
+    const text=await res.text();
+    const urlRegex=/https?:\/\/[^\s\n\r\)>"']+/gi;
+    const matches=[...new Set(text.match(urlRegex)||[])];
+    const pageUrls=matches.filter(u=>{
+      try{const p=new URL(u);return p.pathname.length>1&&!u.includes('/c/src.php')&&!u.includes('docs.google')&&!u.includes('drive.google')&&!u.includes('?');}
+      catch{return false;}
+    }).slice(0,30);
+    docCache[docId]=pageUrls.length?pageUrls:null;
+    return docCache[docId];
+  }catch(e){return null;}
+}
+
+// ── Utilities ─────────────────────────────────────────
+function fmtDate(d){
+  if(!d) return '';
+  return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function addDays(ds,n){
+  const d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);
+}
+function pctStr(a,b){
+  if(!b) return null;
+  const p=Math.round((a-b)/b*100);
+  return(p>=0?'+':'')+p+'%';
+}
+function statusBadge(t){
+  if(t.status==='implemented') return '<span class="badge bg">✓ Implemented</span>';
+  if(t.status==='blocked') return '<span class="badge br">⊘ Blocked</span>';
+  return '<span class="badge ba">◷ Pending</span>';
+}
+function typeBadge(type){
+  const cls={blog:'bb','on-page':'bgr',technical:'bgr',aeo:'bb',meta:'bgr'};
+  return `<span class="badge ${cls[type]||'bgr'}">${TYPE_LABELS[type]||type}</span>`;
+}
+
+// ── Boot ──────────────────────────────────────────────
 window.addEventListener('load',()=>{
   if(checkTokenInUrl()){initApp();return;}
   const saved=localStorage.getItem('gsc_token');
