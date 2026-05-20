@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEO Impact Dashboard — Bullseye Strategy</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#ffffff;--bg2:#f8f8f6;--bg3:#f1f0eb;
+    --text:#1a1a1a;--text2:#666;--text3:#999;
+    --border:#e5e5e2;--border2:#d0d0cc;
+    --green:#1D9E75;--green-bg:#EAF3DE;--green-text:#3B6D11;
+    --amber-bg:#FAEEDA;--amber-text:#854F0B;
+    --red:#D85A30;--red-bg:#FAECE7;--red-text:#993C1D;
+    --blue-bg:#E6F1FB;--blue-text:#185FA5;
+    --radius:8px;--radius-lg:12px;
+    --shadow:0 1px 3px rgba(0,0,0,.06);
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;line-height:1.5}
+  a{color:var(--blue-text);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* Layout */
+  #app{display:flex;height:100vh;overflow:hidden}
+  #sidebar{width:220px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+  #main{flex:1;overflow-y:auto;padding:24px}
+
+  /* Sidebar */
+  .sidebar-header{padding:16px;border-bottom:1px solid var(--border)}
+  .sidebar-logo{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+  .sidebar-sub{font-size:11px;color:var(--text3)}
+  .sidebar-section{padding:12px 16px 6px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+  .sidebar-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left}
+  .sidebar-item:hover{background:var(--bg2);color:var(--text)}
+  .sidebar-item.active{background:var(--bg2);color:var(--text);font-weight:500}
+  .sidebar-item .dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0}
+  .sidebar-item.active .dot{background:var(--green)}
+  .sidebar-divider{height:1px;background:var(--border);margin:8px 0}
+  .sidebar-bottom{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)}
+  .auth-status{font-size:11px;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+  .auth-status.connected{color:var(--green)}
+
+  /* Page header */
+  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+  .page-title{font-size:20px;font-weight:600;color:var(--text)}
+  .page-sub{font-size:13px;color:var(--text2);margin-top:2px}
+
+  /* Metric cards */
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .metric{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
+  .metric-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .metric-value{font-size:26px;font-weight:600;color:var(--text);line-height:1}
+  .metric-sub{font-size:12px;color:var(--text2);margin-top:4px}
+  .metric-value.up{color:var(--green)}
+  .metric-value.warn{color:var(--red)}
+  .metric-value.muted{color:var(--text2)}
+
+  /* Tabs */
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px}
+  .tab-btn{padding:8px 16px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tab-btn:hover{color:var(--text)}
+  .tab-btn.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+
+  /* Filters */
+  .filters{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .filter-btn{padding:5px 12px;font-size:12px;border:1px solid var(--border);border-radius:20px;background:var(--bg);color:var(--text2);cursor:pointer}
+  .filter-btn:hover{border-color:var(--border2);color:var(--text)}
+  .filter-btn.active{background:var(--text);color:#fff;border-color:var(--text)}
+
+  /* Cards */
+  .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:10px}
+  .card:hover{border-color:var(--border2)}
+  .card-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px}
+  .card-meta{font-size:12px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+  /* Badges */
+  .badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+  .badge-green{background:var(--green-bg);color:var(--green-text)}
+  .badge-amber{background:var(--amber-bg);color:var(--amber-text)}
+  .badge-red{background:var(--red-bg);color:var(--red-text)}
+  .badge-blue{background:var(--blue-bg);color:var(--blue-text)}
+  .badge-gray{background:var(--bg3);color:var(--text2)}
+
+  /* Impact grid */
+  .impact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding:12px;background:var(--bg2);border-radius:var(--radius)}
+  .ig-cell .ig-label{font-size:11px;color:var(--text3);margin-bottom:2px}
+  .ig-cell .ig-val{font-size:15px;font-weight:600;color:var(--text)}
+  .ig-cell .ig-val.up{color:var(--green)}
+  .ig-cell .ig-val.down{color:var(--red)}
+
+  /* Forms */
+  select,input[type=text],input[type=password]{padding:7px 10px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit;width:100%}
+  select:focus,input:focus{outline:none;border-color:var(--border2)}
+  label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
+
+  /* Buttons */
+  .btn{padding:8px 16px;font-size:13px;font-weight:500;border-radius:var(--radius);cursor:pointer;border:none}
+  .btn-primary{background:var(--text);color:#fff}
+  .btn-primary:hover{opacity:.9}
+  .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .btn-outline:hover{border-color:var(--border2);background:var(--bg2)}
+  .btn-google{background:#fff;color:var(--text);border:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:10px 20px;font-size:14px;border-radius:var(--radius);cursor:pointer;width:100%;justify-content:center}
+  .btn-google:hover{background:var(--bg2)}
+  .btn-google svg{width:18px;height:18px;flex-shrink:0}
+
+  /* Login screen */
+  #login-screen{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg3)}
+  .login-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:380px;box-shadow:var(--shadow)}
+  .login-logo{font-size:16px;font-weight:600;margin-bottom:4px}
+  .login-sub{font-size:13px;color:var(--text2);margin-bottom:28px}
+
+  /* Property selector */
+  .prop-list{display:flex;flex-direction:column;gap:4px}
+  .prop-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer}
+  .prop-item:hover{border-color:var(--border2)}
+  .prop-item.selected{border-color:var(--green);background:var(--green-bg)}
+  .prop-item.selected .prop-name{color:var(--green-text);font-weight:500}
+
+  /* Spinner */
+  .spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--text2);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Semrush table */
+  .data-table{width:100%;border-collapse:collapse;font-size:13px}
+  .data-table th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);background:var(--bg2)}
+  .data-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+  .data-table tr:hover td{background:var(--bg2)}
+  .data-table tr:last-child td{border-bottom:none}
+
+  /* Empty state */
+  .empty{text-align:center;padding:48px;color:var(--text2)}
+  .empty-icon{font-size:32px;margin-bottom:12px;opacity:.4}
+  .empty-title{font-size:15px;font-weight:500;margin-bottom:6px;color:var(--text)}
+  .empty-sub{font-size:13px}
+
+  /* Section */
+  .section{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px}
+  .section-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px}
+
+  /* Grid */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+  /* Token input row */
+  .token-row{display:flex;gap:8px;align-items:center}
+  .token-row input{flex:1;font-family:monospace;font-size:11px}
+
+  /* Trend pill */
+  .trend{font-size:11px;font-weight:500;padding:1px 6px;border-radius:4px}
+  .trend.up{background:var(--green-bg);color:var(--green-text)}
+  .trend.down{background:var(--red-bg);color:var(--red-text)}
+  .trend.flat{background:var(--bg3);color:var(--text2)}
+
+  /* Responsive */
+  @media(max-width:768px){
+    #sidebar{display:none}
+    .metrics{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Bullseye Strategy</div>
+    <div class="login-sub">SEO Impact Dashboard — iCruise Client Group</div>
+    <button class="btn-google" onclick="startLogin()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      Sign in with Google
+    </button>
+    <div id="login-msg" style="margin-top:12px;font-size:12px;color:var(--text2);text-align:center;min-height:18px"></div>
+    <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+      <label>Or paste an access token directly</label>
+      <div class="token-row" style="margin-top:4px">
+        <input type="password" id="manual-token" placeholder="ya29.a0...">
+        <button class="btn btn-outline" onclick="applyManualToken()">Connect</button>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--text3)">
+        <a href="https://accounts.google.com/o/oauth2/v2/auth?client_id=330551103056-qe7urq10l1rm93escmuakbn64gp41mdp.apps.googleusercontent.com&redirect_uri=https://bullseye-strategy.github.io/seo-impact-tool/&response_type=token&scope=https://www.googleapis.com/auth/webmasters.readonly&prompt=consent&login_hint=seo@bullseyestrategy.com" target="_blank">Get a fresh token →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app" style="display:none">
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">Bullseye Strategy</div>
+      <div class="sidebar-sub">SEO Impact Dashboard</div>
+    </div>
+
+    <div class="sidebar-section">Views</div>
+    <button class="sidebar-item active" onclick="showView('overview')" id="nav-overview">
+      <span class="dot"></span> Overview
+    </button>
+    <button class="sidebar-item" onclick="showView('work')" id="nav-work">
+      <span class="dot"></span> Work delivered
+    </button>
+    <button class="sidebar-item" onclick="showView('impact')" id="nav-impact">
+      <span class="dot"></span> Impact view
+    </button>
+    <button class="sidebar-item" onclick="showView('semrush')" id="nav-semrush">
+      <span class="dot"></span> Semrush
+    </button>
+    <button class="sidebar-item" onclick="showView('forecast')" id="nav-forecast">
+      <span class="dot"></span> Lift forecast
+    </button>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">GSC Properties</div>
+    <div id="prop-list-sidebar" style="padding:0 8px 8px"></div>
+
+    <div class="sidebar-bottom">
+      <div class="auth-status connected" id="sidebar-auth">● Connected</div>
+      <button class="btn btn-outline" style="width:100%;font-size:12px;padding:6px" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <!-- Overview -->
+    <div id="view-overview">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Overview</div>
+          <div class="page-sub" id="overview-sub">All clients</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="showView('impact')">View impact →</button>
+        </div>
+      </div>
+      <div class="metrics" id="overview-metrics"></div>
+      <div class="grid-2">
+        <div class="section">
+          <div class="section-title">Work by type</div>
+          <div id="overview-by-type"></div>
+        </div>
+        <div class="section">
+          <div class="section-title">Implementation status by client</div>
+          <div id="overview-by-client"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Work Delivered -->
+    <div id="view-work" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Work delivered</div>
+          <div class="page-sub">All tasks across the client group</div>
+        </div>
+      </div>
+      <div class="filters" id="work-client-filters"></div>
+      <div class="filters" id="work-status-filters"></div>
+      <div id="work-list"></div>
+    </div>
+
+    <!-- Impact View -->
+    <div id="view-impact" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Impact view</div>
+          <div class="page-sub">Before/after GSC performance for implemented tasks</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="days-before" style="width:auto;font-size:12px">
+            <option value="30">30d before</option>
+            <option value="60" selected>60d before</option>
+            <option value="90">90d before</option>
+          </select>
+          <select id="days-after" style="width:auto;font-size:12px">
+            <option value="30">30d after</option>
+            <option value="60" selected>60d after</option>
+            <option value="90">90d after</option>
+          </select>
+          <button class="btn btn-outline" onclick="gscCache={};renderImpact()">Refresh</button>
+        </div>
+      </div>
+      <div class="filters" id="impact-client-filters"></div>
+      <div id="impact-list"></div>
+    </div>
+
+    <!-- Semrush -->
+    <div id="view-semrush" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Semrush</div>
+          <div class="page-sub">Keyword rankings &amp; site audit</div>
+        </div>
+      </div>
+      <div class="filters" id="semrush-client-filters"></div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showSemrushTab('rankings')" id="stab-rankings">Keyword rankings</button>
+        <button class="tab-btn" onclick="showSemrushTab('audit')" id="stab-audit">Site audit</button>
+      </div>
+      <div id="semrush-rankings"></div>
+      <div id="semrush-audit" style="display:none"></div>
+    </div>
+
+    <!-- Lift Forecast -->
+    <div id="view-forecast" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Lift forecast</div>
+          <div class="page-sub">Estimate traffic impact for planned work</div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="section">
+          <div class="section-title">Forecast a project</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div>
+              <label>Client</label>
+              <select id="fc-client">
+                <option value="icruise">iCruise</option>
+                <option value="alaska">Alaska Cruises</option>
+                <option value="cheap">Cruise Cheap</option>
+              </select>
+            </div>
+            <div>
+              <label>Work type</label>
+              <select id="fc-type">
+                <option value="on-page">On-page optimization</option>
+                <option value="blog">Blog / content</option>
+                <option value="technical">Technical SEO</option>
+                <option value="aeo">AEO / AI overview</option>
+                <option value="meta">Meta titles &amp; descriptions</option>
+              </select>
+            </div>
+            <div>
+              <label>Number of pages</label>
+              <input type="text" id="fc-pages" value="10">
+            </div>
+            <button class="btn btn-primary" onclick="runForecast()">Estimate lift</button>
+          </div>
+        </div>
+        <div id="forecast-result" class="section">
+          <div class="section-title">Estimated impact</div>
+          <div class="empty" style="padding:24px">
+            <div class="empty-sub">Fill in the form and click Estimate lift</div>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Historical implementation rate</div>
+        <div id="hist-summary"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const CLIENT_ID='330551103056-qe7urq10l1rm93escmuakbn64gp41mdp.apps.googleusercontent.com';
+const REDIRECT_URI='https://bullseye-strategy.github.io/seo-impact-tool/';
+const SEMRUSH_KEY='c1fb8c91e7d68c53af04977e176fde1f';
+
+const CLIENT_NAMES={icruise:'iCruise',alaska:'Alaska Cruises',cheap:'Cruise Cheap'};
+const TYPE_LABELS={'on-page':'On-page',blog:'Blog',technical:'Technical',aeo:'AEO',meta:'Meta'};
+const CLIENT_DOMAINS={icruise:'icruise.com',alaska:'alaskacruises.com',cheap:'cruisecheap.com'};
+
+let accessToken=null;
+let gscProperties=[];
+let selectedProps=new Set();
+let activeWorkClient='all', activeWorkStatus='all', activeImpactClient='all', activeSemrushClient='icruise';
+let gscCache={};
+
+const TASKS=[
+  {client:'icruise',task:'Blog Brief: Short Cruises from Miami, LA, Port Canaveral',type:'blog',delivered:'2025-04-08',implemented:'2025-08-04',status:'implemented'},
+  {client:'icruise',task:'Blog Brief: Sailing for Less (Canadian Cruise Deals)',type:'blog',delivered:'2025-04-28',implemented:'2025-08-04',status:'implemented'},
+  {client:'icruise',task:'Blog Brief: Exploring Canada with MSC Cruises',type:'blog',delivered:'2025-04-28',implemented:'2025-07-01',status:'implemented'},
+  {client:'icruise',task:'Blog Brief: Last-Minute Weekend Getaways',type:'blog',delivered:'2025-04-28',implemented:'2025-08-04',status:'implemented'},
+  {client:'icruise',task:'On-Page Optimizations: Royal Caribbean, Celebrity, Viking',type:'on-page',delivered:'2025-04-23',implemented:'2025-05-22',status:'blocked',notes:'Blocked by User Story 155149'},
+  {client:'icruise',task:'Mediterranean Cruises On-Page Optimizations',type:'on-page',delivered:'2025-04-29',implemented:'2025-08-25',status:'blocked',notes:'Pending Defects 163239/160873'},
+  {client:'icruise',task:'Celebrity Cruises Concierge Class Optimizations',type:'on-page',delivered:'2025-04-29',implemented:'2025-09-02',status:'implemented'},
+  {client:'icruise',task:'Hawaii Cruises On-Page Optimizations',type:'on-page',delivered:'2025-04-29',implemented:'2025-07-31',status:'blocked',notes:'Blocked by User Story 163250'},
+  {client:'icruise',task:'MSC Cruises On-Page Optimizations',type:'on-page',delivered:'2025-04-29',implemented:'2025-05-17',status:'blocked',notes:'Blocked by User Story 155149'},
+  {client:'icruise',task:'Silversea, Virgin, Oceania Optimizations',type:'on-page',delivered:'2025-04-08',implemented:'2025-05-28',status:'blocked',notes:'Blocked by User Story 155149'},
+  {client:'icruise',task:'Broken Links Audit',type:'technical',delivered:'2025-06-05',implemented:null,status:'pending'},
+  {client:'icruise',task:'Redirects and Duplicates',type:'technical',delivered:'2025-06-17',implemented:null,status:'pending'},
+  {client:'icruise',task:'Blog Brief: HX Expeditions',type:'blog',delivered:'2025-07-25',implemented:'2025-09-02',status:'implemented'},
+  {client:'icruise',task:'Blog Brief: Singles Cruises',type:'blog',delivered:'2025-08-08',implemented:null,status:'pending'},
+  {client:'icruise',task:'Explora Optimizations',type:'on-page',delivered:'2025-08-08',implemented:'2025-09-10',status:'implemented'},
+  {client:'icruise',task:'American and Aurora Optimizations',type:'on-page',delivered:'2025-09-02',implemented:'2025-11-14',status:'implemented'},
+  {client:'icruise',task:'Costa and Crystal Line Optimizations',type:'on-page',delivered:'2025-09-26',implemented:'2025-11-13',status:'implemented'},
+  {client:'icruise',task:'AEO Audit',type:'aeo',delivered:'2025-12-01',implemented:null,status:'pending'},
+  {client:'icruise',task:'Blog Brief: Mega Ship or Intimate Voyage',type:'blog',delivered:'2025-12-18',implemented:'2026-01-16',status:'implemented'},
+  {client:'icruise',task:'Blog Brief: River Cruise vs Ocean Cruise',type:'blog',delivered:'2025-12-18',implemented:'2026-01-23',status:'implemented'},
+  {client:'icruise',task:'Blog Brief: Best Cruise Lines for Every Type of Traveler',type:'blog',delivered:'2025-12-18',implemented:'2026-01-30',status:'implemented'},
+  {client:'icruise',task:'Blog Brief: Caribbean Cruises Explained',type:'blog',delivered:'2026-01-28',implemented:'2026-02-27',status:'implemented'},
+  {client:'icruise',task:'Blog Brief: Mediterranean Cruises Best Routes',type:'blog',delivered:'2026-01-28',implemented:'2026-03-13',status:'implemented'},
+  {client:'icruise',task:'FAQ/AI Overview Opportunities',type:'aeo',delivered:'2026-02-12',implemented:null,status:'pending'},
+  {client:'icruise',task:'Bounce Rate Optimizations',type:'on-page',delivered:'2026-04-08',implemented:null,status:'pending'},
+  {client:'icruise',task:'Seasonal Cruise Pages',type:'on-page',delivered:'2026-04-23',implemented:null,status:'pending'},
+  {client:'icruise',task:'Destination Page Enhancements',type:'on-page',delivered:'2026-05-07',implemented:null,status:'pending'},
+  {client:'alaska',task:'Page Optimizations: Cruises From Seattle, Vancouver, SF',type:'on-page',delivered:'2025-07-03',implemented:'2025-09-29',status:'implemented'},
+  {client:'alaska',task:'Fix Meta Titles and Descriptions',type:'meta',delivered:'2025-06-24',implemented:null,status:'pending',notes:'~50% complete'},
+  {client:'alaska',task:'Carnival & Royal Caribbean Ship Itineraries',type:'on-page',delivered:'2025-08-08',implemented:'2025-12-08',status:'blocked',notes:'Needs Dev'},
+  {client:'alaska',task:'Carnival, Celebrity, Disney Optimizations',type:'on-page',delivered:'2025-09-15',implemented:null,status:'blocked',notes:'Needs Dev'},
+  {client:'alaska',task:'MSC, Norwegian, Oceania Optimizations',type:'on-page',delivered:'2025-09-26',implemented:null,status:'blocked',notes:'Needs Dev'},
+  {client:'alaska',task:'AEO Audit',type:'aeo',delivered:'2025-11-25',implemented:null,status:'pending'},
+  {client:'alaska',task:'Blog Brief: Alaska Cruise Guide for First Time Cruisers',type:'blog',delivered:'2026-01-28',implemented:'2026-03-27',status:'implemented'},
+  {client:'alaska',task:'Blog Brief: Best Time to Cruise Alaska',type:'blog',delivered:'2026-01-28',implemented:'2026-03-02',status:'implemented'},
+  {client:'alaska',task:'Blog Brief: Best Cruise Lines for Alaska Compared',type:'blog',delivered:'2026-01-28',implemented:'2026-04-24',status:'implemented'},
+  {client:'alaska',task:'Authority Optimizations',type:'on-page',delivered:'2026-03-20',implemented:'2026-03-20',status:'implemented'},
+  {client:'alaska',task:'Trust Building Optimizations',type:'on-page',delivered:'2026-04-22',implemented:'2026-04-22',status:'implemented'},
+  {client:'alaska',task:'Intent Audit',type:'technical',delivered:'2026-05-18',implemented:'2026-05-18',status:'implemented'},
+  {client:'cheap',task:'Cruises From On-Page Optimizations',type:'on-page',delivered:'2025-07-14',implemented:'2025-07-14',status:'implemented'},
+  {client:'cheap',task:'Ships On-Page Optimizations (Holland America)',type:'on-page',delivered:'2025-08-08',implemented:'2026-01-02',status:'implemented'},
+  {client:'cheap',task:'Meta Titles and Description Updates',type:'meta',delivered:'2025-08-21',implemented:'2025-08-22',status:'implemented'},
+  {client:'cheap',task:'Schema Recommendations',type:'technical',delivered:'2025-08-08',implemented:null,status:'pending'},
+  {client:'cheap',task:'Carnival, Celebrity, Costa, Cunard Optimizations',type:'on-page',delivered:'2025-09-26',implemented:'2026-04-17',status:'blocked',notes:'Needs Dev'},
+  {client:'cheap',task:'Disney, HAL, MSC, Norwegian Optimizations',type:'on-page',delivered:'2025-09-26',implemented:'2026-04-17',status:'blocked',notes:'Needs Dev'},
+  {client:'cheap',task:'Princess, Virgin, Royal Caribbean Optimizations',type:'on-page',delivered:'2025-10-17',implemented:'2026-04-17',status:'blocked',notes:'Needs Dev'},
+  {client:'cheap',task:'Blog Brief: Best Time to Book a Cruise',type:'blog',delivered:'2026-01-28',implemented:'2026-04-10',status:'implemented'},
+  {client:'cheap',task:'Blog Brief: Last-Minute Cruise Deals',type:'blog',delivered:'2026-01-28',implemented:'2026-05-08',status:'implemented'},
+  {client:'cheap',task:'Authority Optimizations',type:'on-page',delivered:'2026-03-24',implemented:'2026-05-05',status:'implemented'},
+  {client:'cheap',task:'AEO Audit',type:'aeo',delivered:'2025-11-20',implemented:null,status:'pending'},
+  {client:'cheap',task:'Hidden Fees & Total Cost Transparency',type:'on-page',delivered:'2026-02-11',implemented:null,status:'pending'},
+  {client:'cheap',task:'Voice/Conversational Query Optimization',type:'aeo',delivered:'2026-04-23',implemented:null,status:'pending'},
+];
+
+/* ---- Auth ---- */
+function startLogin(){
+  const params=new URLSearchParams({
+    client_id:CLIENT_ID,
+    redirect_uri:REDIRECT_URI,
+    response_type:'token',
+    scope:'https://www.googleapis.com/auth/webmasters.readonly',
+    prompt:'consent',
+    login_hint:'seo@bullseyestrategy.com'
+  });
+  window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString();
+}
+
+function applyManualToken(){
+  const v=document.getElementById('manual-token').value.trim();
+  if(!v){document.getElementById('login-msg').textContent='Please paste a token first.';return;}
+  accessToken=v;
+  localStorage.setItem('gsc_token',v);
+  initApp();
+}
+
+function logout(){
+  accessToken=null;
+  localStorage.removeItem('gsc_token');
+  location.reload();
+}
+
+function checkTokenInUrl(){
+  const hash=window.location.hash;
+  if(hash&&hash.includes('access_token')){
+    const p=new URLSearchParams(hash.slice(1));
+    const token=p.get('access_token');
+    if(token){
+      accessToken=token;
+      localStorage.setItem('gsc_token',token);
+      window.history.replaceState(null,'',window.location.pathname);
+      return true;
+    }
+  }
+  return false;
+}
+
+/* ---- Init ---- */
+async function initApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  await loadGSCProperties();
+  buildSidebarProps();
+  buildClientFilters();
+  renderOverview();
+}
+
+async function loadGSCProperties(){
+  try{
+    const res=await fetch('https://www.googleapis.com/webmasters/v3/sites',{
+      headers:{Authorization:'Bearer '+accessToken}
+    });
+    if(!res.ok) throw new Error('GSC sites list failed');
+    const data=await res.json();
+    gscProperties=(data.siteEntry||[]).map(s=>s.siteUrl);
+    // pre-select known client domains
+    const known=['icruise.com','alaskacruises.com','cruisecheap.com'];
+    gscProperties.forEach(p=>{
+      if(known.some(d=>p.includes(d))) selectedProps.add(p);
+    });
+    if(selectedProps.size===0) gscProperties.forEach(p=>selectedProps.add(p));
+  }catch(e){
+    console.warn('Could not load GSC properties:',e);
+    // fallback to known properties
+    gscProperties=['sc-domain:icruise.com','sc-domain:alaskacruises.com','sc-domain:cruisecheap.com'];
+    gscProperties.forEach(p=>selectedProps.add(p));
+  }
+}
+
+function buildSidebarProps(){
+  const el=document.getElementById('prop-list-sidebar');
+  el.innerHTML=gscProperties.map(p=>{
+    const short=p.replace('sc-domain:','').replace('https://','').replace(/\/$/,'');
+    const sel=selectedProps.has(p);
+    return `<div class="prop-item ${sel?'selected':''}" onclick="toggleProp('${p}',this)" style="margin-bottom:4px">
+      <span class="prop-name" style="font-size:12px">${short}</span>
+      ${sel?'<span style="font-size:10px;color:var(--green)">✓</span>':''}
+    </div>`;
+  }).join('');
+}
+
+function toggleProp(prop,el){
+  if(selectedProps.has(prop)){
+    if(selectedProps.size===1) return;
+    selectedProps.delete(prop);
+    el.classList.remove('selected');
+    el.querySelector('.prop-name').style.color='';
+    el.querySelector('span:last-child').textContent='';
+  }else{
+    selectedProps.add(prop);
+    el.classList.add('selected');
+    el.querySelector('span:last-child').textContent='✓';
+  }
+}
+
+function buildClientFilters(){
+  ['work','impact','semrush'].forEach(view=>{
+    const el=document.getElementById(view+'-client-filters');
+    if(!el) return;
+    const clients=['all','icruise','alaska','cheap'];
+    el.innerHTML=clients.map(c=>`
+      <button class="filter-btn ${c==='all'?'active':''}" id="${view}-cf-${c}" onclick="setClientFilter('${view}','${c}')">${c==='all'?'All clients':CLIENT_NAMES[c]}</button>
+    `).join('');
+  });
+  // status filters for work
+  document.getElementById('work-status-filters').innerHTML=
+    ['all','implemented','pending','blocked'].map(s=>`
+      <button class="filter-btn ${s==='all'?'active':''}" id="work-sf-${s}" onclick="setStatusFilter('${s}')">${s.charAt(0).toUpperCase()+s.slice(1)}</button>
+    `).join('');
+}
+
+function setClientFilter(view,client){
+  if(view==='work') activeWorkClient=client;
+  else if(view==='impact') activeImpactClient=client;
+  else if(view==='semrush') activeSemrushClient=client==='all'?'icruise':client;
+  ['all','icruise','alaska','cheap'].forEach(c=>{
+    const el=document.getElementById(view+'-cf-'+c);
+    if(el) el.classList.toggle('active',c===client);
+  });
+  if(view==='work'){renderWorkList();}
+  else if(view==='impact'){gscCache={};renderImpact();}
+  else if(view==='semrush'){renderSemrush();}
+}
+
+function setStatusFilter(s){
+  activeWorkStatus=s;
+  ['all','implemented','pending','blocked'].forEach(x=>{
+    const el=document.getElementById('work-sf-'+x);
+    if(el) el.classList.toggle('active',x===s);
+  });
+  renderWorkList();
+}
+
+/* ---- Helpers ---- */
+function fmtDate(d){if(!d)return '';return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function addDays(ds,n){const d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function pctStr(a,b){if(!b)return null;const p=Math.round((a-b)/b*100);return (p>=0?'+':'')+p+'%';}
+
+function statusBadge(t){
+  if(t.status==='implemented') return '<span class="badge badge-green">✓ Implemented</span>';
+  if(t.status==='blocked') return '<span class="badge badge-red">⊘ Blocked</span>';
+  return '<span class="badge badge-amber">◷ Pending</span>';
+}
+function typeBadge(type){
+  const cls={blog:'badge-blue','on-page':'badge-gray',technical:'badge-gray',aeo:'badge-blue',meta:'badge-gray'};
+  return `<span class="badge ${cls[type]||'badge-gray'}">${TYPE_LABELS[type]||type}</span>`;
+}
+
+/* ---- Overview ---- */
+function renderOverview(){
+  const all=TASKS;
+  const impl=all.filter(t=>t.status==='implemented').length;
+  const blocked=all.filter(t=>t.status==='blocked').length;
+  const pending=all.filter(t=>t.status==='pending').length;
+  const pct=Math.round(impl/all.length*100);
+
+  document.getElementById('overview-metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Total deliverables</div><div class="metric-value">${all.length}</div></div>
+    <div class="metric"><div class="metric-label">Implemented</div><div class="metric-value up">${impl}</div><div class="metric-sub">${pct}% of total</div></div>
+    <div class="metric"><div class="metric-label">Pending / in review</div><div class="metric-value muted">${pending}</div></div>
+    <div class="metric"><div class="metric-label">Blocked</div><div class="metric-value warn">${blocked}</div></div>`;
+
+  const types=['on-page','blog','technical','aeo','meta'];
+  document.getElementById('overview-by-type').innerHTML=types.map(type=>{
+    const n=all.filter(t=>t.status==='implemented'&&t.type===type).length;
+    const tot=all.filter(t=>t.type===type).length;
+    const pct=tot?Math.round(n/tot*100):0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span style="width:100px;color:var(--text2)">${TYPE_LABELS[type]}</span>
+      <span style="width:36px;font-weight:500">${n}/${tot}</span>
+      <div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:var(--green);border-radius:3px"></div>
+      </div>
+      <span style="width:28px;font-size:11px;color:var(--text3)">${pct}%</span>
+    </div>`;
+  }).join('');
+
+  const clients=['icruise','alaska','cheap'];
+  document.getElementById('overview-by-client').innerHTML=clients.map(c=>{
+    const ct=all.filter(t=>t.client===c);
+    const ci=ct.filter(t=>t.status==='implemented').length;
+    const pct=ct.length?Math.round(ci/ct.length*100):0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span style="width:120px;color:var(--text2)">${CLIENT_NAMES[c]}</span>
+      <span style="width:36px;font-weight:500">${ci}/${ct.length}</span>
+      <div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:var(--green);border-radius:3px"></div>
+      </div>
+      <span style="width:28px;font-size:11px;color:var(--text3)">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+/* ---- Work list ---- */
+function renderWorkList(){
+  const tasks=TASKS.filter(t=>{
+    if(activeWorkClient!=='all'&&t.client!==activeWorkClient) return false;
+    if(activeWorkStatus!=='all'&&t.status!==activeWorkStatus) return false;
+    return true;
+  });
+  document.getElementById('work-list').innerHTML=tasks.length?tasks.map(t=>`
+    <div class="card">
+      <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
+        <div style="flex:1">
+          <div class="card-title">${t.task}</div>
+          <div class="card-meta">
+            <span>${CLIENT_NAMES[t.client]}</span>
+            <span>Delivered ${fmtDate(t.delivered)}</span>
+            ${t.implemented?`<span>Implemented ${fmtDate(t.implemented)}</span>`:''}
+            ${t.notes?`<span style="color:var(--text3)">${t.notes}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;align-items:center">${typeBadge(t.type)}${statusBadge(t)}</div>
+      </div>
+    </div>`).join('')
+    :`<div class="empty"><div class="empty-title">No tasks match this filter</div></div>`;
+}
+
+/* ---- GSC fetch ---- */
+function propForClient(client){
+  const domain=CLIENT_DOMAINS[client];
+  const match=gscProperties.find(p=>p.includes(domain));
+  return match||('sc-domain:'+domain);
+}
+
+async function fetchGSC(property,startDate,endDate){
+  const key=property+startDate+endDate;
+  if(gscCache[key]) return gscCache[key];
+  try{
+    const res=await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`,{
+      method:'POST',
+      headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
+      body:JSON.stringify({startDate,endDate,dimensions:['page'],rowLimit:500})
+    });
+    if(!res.ok){const e=await res.json();return{error:e?.error?.message||'API error'};}
+    const data=await res.json();
+    gscCache[key]=data.rows||[];
+    return gscCache[key];
+  }catch(e){return null;}
+}
+
+function sumRows(rows){
+  if(!rows||!Array.isArray(rows)||!rows.length) return{clicks:0,impressions:0,position:0};
+  const clicks=rows.reduce((s,r)=>s+r.clicks,0);
+  const impressions=rows.reduce((s,r)=>s+r.impressions,0);
+  const position=rows.reduce((s,r)=>s+r.position,0)/rows.length;
+  return{clicks,impressions,position:+position.toFixed(1)};
+}
+
+/* ---- Impact view ---- */
+async function renderImpact(){
+  const tasks=TASKS.filter(t=>{
+    if(activeImpactClient!=='all'&&t.client!==activeImpactClient) return false;
+    return t.status==='implemented'&&t.implemented;
+  });
+  const el=document.getElementById('impact-list');
+  if(!tasks.length){el.innerHTML='<div class="empty"><div class="empty-title">No implemented tasks for this client.</div></div>';return;}
+
+  const daysBefore=parseInt(document.getElementById('days-before').value||60);
+  const daysAfter=parseInt(document.getElementById('days-after').value||60);
+
+  el.innerHTML=tasks.map(t=>{
+    const sid='s'+Math.random().toString(36).slice(2,8);
+    t._sid=sid;
+    return `<div class="card">
+      <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
+        <div style="flex:1">
+          <div class="card-title">${t.task}</div>
+          <div class="card-meta">
+            <span>${CLIENT_NAMES[t.client]}</span>
+            <span>Implemented ${fmtDate(t.implemented)}</span>
+          </div>
+          <div class="impact-grid" id="${sid}">
+            <div style="grid-column:span 3;font-size:12px;color:var(--text2)"><span class="spinner"></span>Fetching GSC data...</div>
+          </div>
+        </div>
+        <div style="flex-shrink:0">${typeBadge(t.type)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  for(const t of tasks){
+    const prop=propForClient(t.client);
+    const b0=addDays(t.implemented,-daysBefore),b1=addDays(t.implemented,-1);
+    const a0=t.implemented,a1=addDays(t.implemented,daysAfter);
+    const [bResult,aResult]=await Promise.all([fetchGSC(prop,b0,b1),fetchGSC(prop,a0,a1)]);
+    const el2=document.getElementById(t._sid);
+    if(!el2) continue;
+    if(bResult&&bResult.error){
+      el2.innerHTML=`<div style="grid-column:span 3;font-size:12px;color:var(--red)">Error: ${bResult.error}</div>`;
+      continue;
+    }
+    if(!bResult||!aResult){
+      el2.innerHTML=`<div style="grid-column:span 3;font-size:12px;color:var(--text2)">No data returned — check GSC property access.</div>`;
+      continue;
+    }
+    const b=sumRows(bResult),a=sumRows(aResult);
+    const dClicks=a.clicks-b.clicks;
+    const dImpr=a.impressions-b.impressions;
+    const dPos=b.position>0?(b.position-a.position).toFixed(1):null;
+    const pct=pctStr(a.clicks,b.clicks);
+    el2.innerHTML=`
+      <div class="ig-cell"><div class="ig-label">Clicks before</div><div class="ig-val">${b.clicks.toLocaleString()}</div></div>
+      <div class="ig-cell"><div class="ig-label">Clicks after</div><div class="ig-val ${dClicks>=0?'up':'down'}">${a.clicks.toLocaleString()}${pct?` <span style="font-size:11px">(${pct})</span>`:''}</div></div>
+      <div class="ig-cell"><div class="ig-label">Position shift</div><div class="ig-val ${dPos&&parseFloat(dPos)>0?'up':''}">${dPos!==null?(parseFloat(dPos)>0?'+':'')+dPos+' pos':'—'}</div></div>
+      <div class="ig-cell"><div class="ig-label">Impressions before</div><div class="ig-val">${b.impressions.toLocaleString()}</div></div>
+      <div class="ig-cell"><div class="ig-label">Impressions after</div><div class="ig-val ${dImpr>=0?'up':'down'}">${a.impressions.toLocaleString()}</div></div>
+      <div class="ig-cell"><div class="ig-label">Avg. position after</div><div class="ig-val">${a.position||'—'}</div></div>`;
+  }
+}
+
+/* ---- Semrush ---- */
+async function renderSemrush(){
+  const domain=CLIENT_DOMAINS[activeSemrushClient]||'icruise.com';
+  if(document.getElementById('stab-rankings').classList.contains('active')){
+    renderSemrushRankings(domain);
+  } else {
+    renderSemrushAudit(domain);
+  }
+}
+
+async function renderSemrushRankings(domain){
+  const el=document.getElementById('semrush-rankings');
+  el.innerHTML='<div style="padding:24px;color:var(--text2)"><span class="spinner"></span>Loading keyword rankings...</div>';
+  try{
+    const url=`https://api.semrush.com/?type=domain_organic&key=${SEMRUSH_KEY}&display_limit=50&export_columns=Ph,Po,Nq,Tr,Ur&domain=${domain}&database=us`;
+    const res=await fetch(url);
+    const text=await res.text();
+    const lines=text.trim().split('\n').slice(1).filter(l=>l.trim());
+    if(!lines.length){el.innerHTML='<div class="empty"><div class="empty-title">No ranking data found</div><div class="empty-sub">This domain may not have data in Semrush yet.</div></div>';return;}
+    const rows=lines.map(l=>{
+      const[keyword,position,volume,traffic,url]=l.split(';');
+      return{keyword,position:parseInt(position)||0,volume:parseInt(volume)||0,traffic:parseFloat(traffic)||0,url};
+    }).sort((a,b)=>a.position-b.position);
+    el.innerHTML=`<div style="overflow-x:auto"><table class="data-table">
+      <thead><tr><th>Keyword</th><th>Position</th><th>Search volume</th><th>Traffic %</th><th>URL</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr>
+        <td style="font-weight:500">${r.keyword}</td>
+        <td><span class="trend ${r.position<=3?'up':r.position<=10?'flat':'down'}">#${r.position}</span></td>
+        <td>${r.volume.toLocaleString()}</td>
+        <td>${r.traffic.toFixed(2)}%</td>
+        <td style="font-size:11px;color:var(--text3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.url||'—'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-title">Semrush API error</div><div class="empty-sub">${e.message}</div></div>`;}
+}
+
+async function renderSemrushAudit(domain){
+  const el=document.getElementById('semrush-audit');
+  el.innerHTML='<div style="padding:24px;color:var(--text2)"><span class="spinner"></span>Loading site audit data...</div>';
+  try{
+    const url=`https://api.semrush.com/?type=domain_rank&key=${SEMRUSH_KEY}&export_columns=Dn,Rk,Or,Ot,Oc,Ad&domain=${domain}&database=us`;
+    const res=await fetch(url);
+    const text=await res.text();
+    const lines=text.trim().split('\n');
+    if(lines.length<2){el.innerHTML='<div class="empty"><div class="empty-title">No audit data available</div></div>';return;}
+    const[,vals]=lines;
+    const[dn,rank,organic_kw,organic_traffic,organic_cost,ads]=vals.split(';');
+    el.innerHTML=`
+      <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
+        <div class="metric"><div class="metric-label">Semrush rank</div><div class="metric-value">#${parseInt(rank).toLocaleString()}</div></div>
+        <div class="metric"><div class="metric-label">Organic keywords</div><div class="metric-value up">${parseInt(organic_kw).toLocaleString()}</div></div>
+        <div class="metric"><div class="metric-label">Organic traffic/mo</div><div class="metric-value up">${parseInt(organic_traffic).toLocaleString()}</div></div>
+      </div>
+      <div class="section" style="margin-top:16px">
+        <div class="section-title">Domain overview — ${domain}</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.8">
+          <div>Estimated organic traffic cost: <strong>$${parseInt(organic_cost).toLocaleString()}/mo</strong></div>
+          <div style="margin-top:8px;font-size:12px;color:var(--text3)">Full site audit (crawl errors, broken links, page speed) requires Semrush Projects API which needs a project ID. <a href="https://www.semrush.com/projects/" target="_blank">Set up a project in Semrush →</a></div>
+        </div>
+      </div>`;
+  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-title">Semrush API error</div><div class="empty-sub">${e.message}</div></div>`;}
+}
+
+function showSemrushTab(tab){
+  ['rankings','audit'].forEach(t=>{
+    document.getElementById('semrush-'+t).style.display=tab===t?'block':'none';
+    document.getElementById('stab-'+t).classList.toggle('active',t===tab);
+  });
+  renderSemrush();
+}
+
+/* ---- Forecast ---- */
+function runForecast(){
+  const type=document.getElementById('fc-type').value;
+  const pages=parseInt(document.getElementById('fc-pages').value)||10;
+  const client=document.getElementById('fc-client').value;
+  const est={'on-page':{c:[8,18],p:[1.5,4]},'blog':{c:[200,600],p:[0,0]},'technical':{c:[5,12],p:[0.5,2]},'aeo':{c:[15,40],p:[2,5]},'meta':{c:[12,25],p:[1,3]}};
+  const e=est[type]||est['on-page'];
+  const lo=Math.round(e.c[0]*pages),hi=Math.round(e.c[1]*pages);
+  const histCount=TASKS.filter(t=>t.status==='implemented'&&t.type===type).length;
+  document.getElementById('forecast-result').innerHTML=`
+    <div class="section-title">Estimated impact</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">${pages} ${TYPE_LABELS[type].toLowerCase()} pages · ${CLIENT_NAMES[client]}</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="metric"><div class="metric-label">Additional clicks/mo</div><div class="metric-value up">${lo.toLocaleString()}–${hi.toLocaleString()}</div></div>
+      ${e.p[1]>0?`<div class="metric"><div class="metric-label">Avg. position gain</div><div class="metric-value up">+${e.p[0]}–${e.p[1]} pos</div></div>`:`<div class="metric"><div class="metric-label">Traffic type</div><div class="metric-value muted">New pages</div></div>`}
+      <div class="metric"><div class="metric-label">Confidence</div><div class="metric-value muted">Medium</div><div class="metric-sub">${histCount} historical matches</div></div>
+    </div>`;
+  renderHist();
+}
+
+function renderHist(){
+  const types=['on-page','blog','technical','aeo','meta'];
+  document.getElementById('hist-summary').innerHTML=types.map(type=>{
+    const n=TASKS.filter(t=>t.status==='implemented'&&t.type===type).length;
+    const tot=TASKS.filter(t=>t.type===type).length;
+    const pct=tot?Math.round(n/tot*100):0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span style="width:110px;color:var(--text2)">${TYPE_LABELS[type]}</span>
+      <span style="width:36px;font-weight:500">${n}/${tot}</span>
+      <div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:var(--green);border-radius:3px"></div>
+      </div>
+      <span style="width:28px;font-size:11px;color:var(--text3)">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+/* ---- Navigation ---- */
+function showView(view){
+  ['overview','work','impact','semrush','forecast'].forEach(v=>{
+    document.getElementById('view-'+v).style.display=v===view?'block':'none';
+    document.getElementById('nav-'+v).classList.toggle('active',v===view);
+  });
+  if(view==='work') renderWorkList();
+  if(view==='impact') renderImpact();
+  if(view==='semrush') renderSemrush();
+  if(view==='forecast') renderHist();
+}
+
+/* ---- Boot ---- */
+window.addEventListener('load',()=>{
+  if(checkTokenInUrl()){initApp();return;}
+  const saved=localStorage.getItem('gsc_token');
+  if(saved){accessToken=saved;initApp();return;}
+});
+</script>
+</body>
+</html>
