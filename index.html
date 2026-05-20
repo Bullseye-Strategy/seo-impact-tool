@@ -174,7 +174,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
         <button class="btn btn-o btn-sm" onclick="applyManualToken()">Connect</button>
       </div>
       <div style="margin-top:8px;font-size:11px;color:var(--text3)">
-        <a href="https://accounts.google.com/o/oauth2/v2/auth?client_id=330551103056-qe7urq10l1rm93escmuakbn64gp41mdp.apps.googleusercontent.com&redirect_uri=https://bullseye-strategy.github.io/seo-impact-tool/&response_type=token&scope=https://www.googleapis.com/auth/webmasters.readonly+https://www.googleapis.com/auth/drive.readonly&prompt=consent&login_hint=seo@bullseyestrategy.com" target="_blank">Get a fresh token →</a>
+        <a href="https://accounts.google.com/o/oauth2/v2/auth?client_id=330551103056-qe7urq10l1rm93escmuakbn64gp41mdp.apps.googleusercontent.com&redirect_uri=https://bullseye-strategy.github.io/seo-impact-tool/&response_type=token&scope=https://www.googleapis.com/auth/webmasters.readonly+https://www.googleapis.com/auth/drive.readonly+https://www.googleapis.com/auth/spreadsheets.readonly&prompt=consent&login_hint=seo@bullseyestrategy.com" target="_blank">Get a fresh token →</a>
       </div>
     </div>
   </div>
@@ -309,7 +309,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
 const CLIENT_ID='330551103056-qe7urq10l1rm93escmuakbn64gp41mdp.apps.googleusercontent.com';
 const REDIRECT_URI='https://bullseye-strategy.github.io/seo-impact-tool/';
 const SEMRUSH_KEY='c1fb8c91e7d68c53af04977e176fde1f';
-const SCOPES='https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/drive.readonly';
+const SCOPES='https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/spreadsheets.readonly';
 const TYPE_LABELS={'on-page':'On-page',blog:'Blog',technical:'Technical',aeo:'AEO',meta:'Meta'};
 
 let accessToken=null;
@@ -449,40 +449,81 @@ async function findStatusSheet(domain){
   const stored=localStorage.getItem('sheet_'+domain);
   if(stored) return stored;
 
-  // Search Drive
-  const q=`title contains 'Status Sheet' and mimeType='application/vnd.google-apps.spreadsheet'`;
-  try{
-    const res=await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&pageSize=20`,{
-      headers:{Authorization:'Bearer '+accessToken}
-    });
-    if(!res.ok) return null;
-    const data=await res.json();
-    const files=data.files||[];
-    // Find best match — title contains part of the domain
-    const domainParts=domain.split('.')[0].toLowerCase();
-    const match=files.find(f=>f.name.toLowerCase().includes(domainParts))||
-                 files.find(f=>f.name.toLowerCase().includes(domain.toLowerCase()));
-    if(match){
-      localStorage.setItem('sheet_'+domain,match.id);
-      return match.id;
-    }
-    return null;
-  }catch(e){return null;}
+  // Search Drive for status sheets — try multiple search strategies
+  const domainRoot=domain.split('.')[0].toLowerCase();
+  const searches=[
+    `title contains 'Status Sheet' and title contains '${domainRoot}' and mimeType='application/vnd.google-apps.spreadsheet'`,
+    `title contains 'SEO Status' and title contains '${domainRoot}' and mimeType='application/vnd.google-apps.spreadsheet'`,
+    `title contains 'Status Sheet' and mimeType='application/vnd.google-apps.spreadsheet'`,
+    `title contains 'SEO Status' and mimeType='application/vnd.google-apps.spreadsheet'`,
+  ];
+
+  for(const q of searches){
+    try{
+      const res=await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&pageSize=50&orderBy=modifiedTime desc`,{
+        headers:{Authorization:'Bearer '+accessToken}
+      });
+      if(!res.ok) continue;
+      const data=await res.json();
+      const files=data.files||[];
+      if(!files.length) continue;
+      // Score matches: exact domain root match scores highest
+      const scored=files.map(f=>{
+        const n=f.name.toLowerCase();
+        let score=0;
+        if(n.includes(domainRoot)) score+=10;
+        if(n.includes(domain.toLowerCase())) score+=5;
+        if(n.includes('status sheet')) score+=2;
+        if(n.includes('seo')) score+=1;
+        return{...f,score};
+      }).sort((a,b)=>b.score-a.score);
+      const best=scored[0];
+      if(best&&best.score>=3){
+        localStorage.setItem('sheet_'+domain,best.id);
+        return best.id;
+      }
+    }catch(e){continue;}
+  }
+  return null;
 }
 
 async function readSheet(sheetId,domain){
+  // Try Sheets API first (needs spreadsheets.readonly scope)
   try{
-    const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A:F?majorDimension=ROWS`,{
+    const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:G500?majorDimension=ROWS`,{
+      headers:{Authorization:'Bearer '+accessToken}
+    });
+    if(res.ok){
+      const data=await res.json();
+      const rows=data.values||[];
+      if(rows.length>1) return parseSheetRows(rows,domain,sheetId);
+    }
+  }catch(e){}
+  // Fallback: export as CSV via Drive API
+  try{
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files/${sheetId}/export?mimeType=text/csv`,{
       headers:{Authorization:'Bearer '+accessToken}
     });
     if(!res.ok) return [];
-    const data=await res.json();
-    const rows=data.values||[];
+    const csv=await res.text();
+    const rows=csv.split('\n').map(line=>{
+      // Simple CSV parse
+      const result=[];let cur='';let inQ=false;
+      for(const ch of line){
+        if(ch==='"'){inQ=!inQ;}
+        else if(ch===','&&!inQ){result.push(cur.trim());cur='';}
+        else{cur+=ch;}
+      }
+      result.push(cur.trim());
+      return result;
+    });
     return parseSheetRows(rows,domain,sheetId);
   }catch(e){return [];}
 }
 
 function parseSheetRows(rows,domain,sheetId){
+  // Remove completely empty rows and rows that are just dividers
+  rows=rows.filter(r=>r&&r.some(c=>c&&c.trim()));
   const tasks=[];
   // Find header row — look for row with "Task" and "Date"
   let headerIdx=-1;
