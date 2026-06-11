@@ -448,24 +448,32 @@ async function readSheetTasks(sheetId,domain){
     const allTasks=[];
     for(const tab of tabNames){
       const tabLower=tab.toLowerCase();
-      // Skip obviously irrelevant tabs (keyword research, ranking data etc)
+      // Skip irrelevant tabs
       const skipTabs=['ranking now','interactive video','competitive kw','keyword research','ranking','keywords'];
       if(skipTabs.some(s=>tabLower.includes(s))) continue;
-      // For shared sheets (multiple clients), filter by domain root in tab name
-      // But if the sheet was manually linked for this client, read all task tabs
+      // For the known shared cruise sheet, filter by domain
       const domainRoot=domain.split('.')[0].toLowerCase();
       const altRoot=domainRoot.replace(/[^a-z]/g,'');
       const tabClean=tabLower.replace(/[^a-z]/g,'');
       const isSharedSheet=['1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o'].includes(sheetId);
-      // For shared sheets, filter by domain; for manually linked sheets, read all tabs
       if(isSharedSheet&&!tabClean.includes(altRoot)&&!tabLower.includes(domainRoot)) continue;
 
       try{
-        const enc=encodeURIComponent(`'${tab}'!A1:E500`);
-        const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${enc}?majorDimension=ROWS`,{headers:{Authorization:'Bearer '+accessToken}});
-        if(!res.ok) continue;
-        const data=await res.json();
-        const rows=data.values||[];
+        // Use sheetId!TabName format — URL encode the whole thing
+        const safeTab=tab.replace(/'/g,"''");
+        // Try both with and without quotes around tab name
+        let rows=[];
+        const urls=[
+          `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent("'"+safeTab+"'!A1:E500")}?majorDimension=ROWS`,
+          `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(safeTab+"!A1:E500")}?majorDimension=ROWS`,
+        ];
+        for(const url of urls){
+          const res=await fetch(url,{headers:{Authorization:'Bearer '+accessToken}});
+          if(!res.ok) continue;
+          const data=await res.json();
+          if(data.values&&data.values.length>1){rows=data.values;break;}
+        }
+        if(!rows.length) continue;
         const tasks=parseRows(rows,tab);
         allTasks.push(...tasks);
       }catch(e){continue;}
@@ -546,7 +554,8 @@ async function debugReadSheet(domain){
       const tabs=(md.sheets||[]).map(s=>s.properties.title);
       el.textContent+=`  Tabs found: ${tabs.join(', ')}\n`;
       for(const tab of tabs){
-        const enc=encodeURIComponent("'"+tab+"'!A1:E10");
+        const safeTabD=tab.replace(/'/g,"''");
+        const enc=encodeURIComponent("'"+safeTabD+"'!A1:E10");
         const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${enc}?majorDimension=ROWS`,{headers:{Authorization:'Bearer '+accessToken}});
         if(!res.ok){el.textContent+=`  Tab "${tab}": HTTP ${res.status}\n`;continue;}
         const data=await res.json();
