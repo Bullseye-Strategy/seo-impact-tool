@@ -528,6 +528,36 @@ function fmtDate(d){if(!d)return '—';return new Date(d+'T00:00:00').toLocaleDa
 function addDays(ds,n){const d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
 function pctStr(a,b){if(!b)return null;const p=Math.round((a-b)/b*100);return(p>=0?'+':'')+p+'%';}
 
+async function debugReadSheet(domain){
+  const el=document.getElementById('debug-output');
+  if(!el) return;
+  el.textContent='Running debug read...\n';
+  const sheets=getClientSheets(domain);
+  const KNOWN={'icruise.com':'1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o','alaskacruises.com':'1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o','cruisecheap.com':'1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o'};
+  const knownId=KNOWN[domain];
+  const allIds=[...new Set([...(sheets.map(s=>s.id)||[]),...(knownId?[knownId]:[])])];
+  el.textContent+=`Sheet IDs: ${allIds.join(', ')}\n`;
+  for(const sheetId of allIds){
+    el.textContent+=`\nReading sheet ${sheetId}...\n`;
+    try{
+      const meta=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?fields=sheets.properties.title`,{headers:{Authorization:'Bearer '+accessToken}});
+      if(!meta.ok){el.textContent+=`  ERROR: HTTP ${meta.status}\n`;continue;}
+      const md=await meta.json();
+      const tabs=(md.sheets||[]).map(s=>s.properties.title);
+      el.textContent+=`  Tabs found: ${tabs.join(', ')}\n`;
+      for(const tab of tabs){
+        const enc=encodeURIComponent("'"+tab+"'!A1:E10");
+        const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${enc}?majorDimension=ROWS`,{headers:{Authorization:'Bearer '+accessToken}});
+        if(!res.ok){el.textContent+=`  Tab "${tab}": HTTP ${res.status}\n`;continue;}
+        const data=await res.json();
+        const rows=data.values||[];
+        el.textContent+=`  Tab "${tab}": ${rows.length} rows, first row: ${JSON.stringify(rows[0]||[])}\n`;
+      }
+    }catch(e){el.textContent+=`  EXCEPTION: ${e.message}\n`;}
+  }
+  el.textContent+='\nDone.';
+}
+
 async function refreshClient(){
   if(!activeClient) return;
   delete clientTaskCache[activeClient];
@@ -575,7 +605,24 @@ async function renderWork(){
   document.getElementById('work-list').innerHTML='<div style="padding:20px;color:var(--text2)"><span class="spinner"></span>Loading tasks...</div>';
   const tasks=await getTasksForClient(activeClient);
   if(!tasks.length){
-    document.getElementById('work-list').innerHTML=`<div class="warn">No tasks found. <a href="#" onclick="showView('settings');return false">Add status sheets for ${domain} →</a></div>`;
+    // Debug: show what sheets are configured
+    const sheets=getClientSheets(domain);
+    const KNOWN={'icruise.com':'1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o','alaskacruises.com':'1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o','cruisecheap.com':'1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o'};
+    const knownId=KNOWN[domain];
+    const allIds=[...new Set([...(sheets.map(s=>s.id)||[]),...(knownId?[knownId]:[])])];
+    document.getElementById('work-list').innerHTML=`
+      <div class="warn" style="margin-bottom:12px">No tasks found for <strong>${domain}</strong>.</div>
+      <div class="section">
+        <div class="section-title">Debug info</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.8">
+          <div><strong>Sheet IDs configured:</strong> ${allIds.length?allIds.join(', '):'none'}</div>
+          <div><strong>localStorage sheets:</strong> ${JSON.stringify(sheets)}</div>
+          <div><strong>Domain:</strong> ${domain}</div>
+          <div style="margin-top:8px"><a href="#" onclick="debugReadSheet('${domain}');return false">Run debug read →</a></div>
+        </div>
+        <div id="debug-output" style="margin-top:10px;font-size:11px;font-family:monospace;color:var(--text2);white-space:pre-wrap"></div>
+      </div>
+      <a href="#" onclick="showView('settings');return false" style="font-size:13px">Configure status sheets →</a>`;
     return;
   }
   renderWorkList(tasks,domain);
