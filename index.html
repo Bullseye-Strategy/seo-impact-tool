@@ -1061,10 +1061,13 @@ async function renderImpact(){
     const el2=document.getElementById(t._sid);
     if(!el2) continue;
 
-    // Resolve URLs — publishedUrl > stored docId > Drive lookup by link title
+    // Resolve URLs — publishedUrl > saved override > stored docId > Drive lookup by link title
     let urls=[];
+    const savedOverride=localStorage.getItem('urloverride_'+implKey(domain,t.task));
     if(t.publishedUrl){
       urls=[t.publishedUrl];
+    } else if(savedOverride){
+      urls=[savedOverride];
     } else {
       let docId=t.docId;
       // If no docId stored, try to find the doc by its title (link column value)
@@ -1146,8 +1149,58 @@ async function renderImpact(){
         <div><div class="ilabel">${urls.length?'Pages tracked':'Data scope'}</div><div class="ival" style="font-size:13px">${urls.length?urls.length+' page'+(urls.length>1?'s':''):'Site-wide'}</div></div>
       </div>
       ${urlRowsHtml}
-      ${!urls.length?`<div style="margin-top:6px;font-size:11px;color:var(--text3)">No deliverable doc linked — showing site-wide GSC data.</div>`:''}`;
+      ${!urls.length?`<div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--r)">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">${t.docId?'Could not extract URLs from deliverable doc.':'No deliverable doc linked.'} Enter the affected URL manually:</div>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="url-override-${sid}" placeholder="https://www.example.com/page" style="flex:1;font-size:12px;padding:5px 8px">
+          <button class="btn btn-o btn-sm" onclick="applyUrlOverride('${sid}','${domain}','${t.task.replace(/'/g,"\\'")}','${t.implOverride||t.implemented||''}',${daysBefore},${daysAfter})">Pull GSC data</button>
+        </div>
+      </div>`:''}`;
   }
+}
+
+async function applyUrlOverride(sid,domain,taskName,implDate,daysBefore,daysAfter){
+  const input=document.getElementById('url-override-'+sid);
+  if(!input||!input.value.trim()) return;
+  const url=input.value.trim();
+  const prop=activeClient;
+  const el2=document.getElementById(sid);
+  if(!el2) return;
+
+  // Save this URL override for this task
+  const overrideKey='urloverride_'+implKey(domain,taskName);
+  localStorage.setItem(overrideKey,url);
+
+  el2.innerHTML='<span class="spinner"></span><span style="font-size:12px;color:var(--text2)">Fetching GSC data for '+url+'...</span>';
+
+  const b0=addDays(implDate,-daysBefore),b1=addDays(implDate,-1);
+  const a0=implDate,a1=addDays(implDate,daysAfter);
+  const [bRows,aRows]=await Promise.all([
+    fetchGSCForUrls(prop,[url],b0,b1),
+    fetchGSCForUrls(prop,[url],a0,a1)
+  ]);
+
+  if(!bRows||!aRows||bRows.error){
+    el2.innerHTML='<div style="font-size:12px;color:var(--red)">Could not fetch GSC data for that URL. Check the URL is correct and exists in GSC.</div>';
+    return;
+  }
+
+  const b=sumRows(bRows),a=sumRows(aRows);
+  const dClicks=a.clicks-b.clicks;
+  const dImpr=a.impressions-b.impressions;
+  const dPos=b.position>0?(b.position-a.position).toFixed(1):null;
+  const pct=pctStr(a.clicks,b.clicks);
+
+  el2.innerHTML=`
+    <div style="margin-bottom:8px;font-size:11px;color:var(--text3)">URL: <a href="${url}" target="_blank" style="color:var(--blue)">${url.replace(/https?:\/\/(www\.)?/,'')}</a></div>
+    <div class="igrid">
+      <div><div class="ilabel">Clicks before (${daysBefore}d)</div><div class="ival">${b.clicks.toLocaleString()}</div></div>
+      <div><div class="ilabel">Clicks after (${daysAfter}d)</div><div class="ival ${dClicks>=0?'up':'down'}">${a.clicks.toLocaleString()}${pct?' <span style="font-size:11px;font-weight:400">('+pct+')</span>':''}</div></div>
+      <div><div class="ilabel">Position shift</div><div class="ival ${dPos&&parseFloat(dPos)>0?'up':''}">${dPos!==null?(parseFloat(dPos)>0?'+':'')+dPos+' pos':'—'}</div></div>
+      <div><div class="ilabel">Impressions before</div><div class="ival">${b.impressions.toLocaleString()}</div></div>
+      <div><div class="ilabel">Impressions after</div><div class="ival ${dImpr>=0?'up':'down'}">${a.impressions.toLocaleString()}</div></div>
+      <div><div class="ilabel">Position after</div><div class="ival">${a.position||'—'}</div></div>
+    </div>`;
 }
 
 function togglePages(btn){
@@ -1323,22 +1376,39 @@ function sumRows(rows){
 }
 
 async function getUrlsFromDoc(docId){
-  if(docCache[docId]) return docCache[docId];
+  if(docCache[docId]!==undefined) return docCache[docId];
   try{
     const res=await fetch(`https://www.googleapis.com/drive/v3/files/${docId}/export?mimeType=text/plain`,{
       headers:{Authorization:'Bearer '+accessToken}
     });
-    if(!res.ok) return null;
+    if(!res.ok){docCache[docId]=null;return null;}
     const text=await res.text();
-    const urlRegex=/https?:\/\/[^\s\n\r\)>"']+/gi;
-    const matches=[...new Set(text.match(urlRegex)||[])];
-    const pageUrls=matches.filter(u=>{
-      try{const p=new URL(u);return p.pathname.length>1&&!u.includes('/c/src.php')&&!u.includes('docs.google')&&!u.includes('drive.google')&&!u.includes('?');}
-      catch{return false;}
-    }).slice(0,30);
-    docCache[docId]=pageUrls.length?pageUrls:null;
+
+    // Extract all URLs from the doc
+    const urlRegex=/https?:\/\/[^\s\n\r\t\)\]>"'`]+/gi;
+    const allMatches=[...new Set(text.match(urlRegex)||[])];
+
+    // Filter to only client page URLs — exclude Google, tracking, CDN links
+    const excluded=['docs.google','drive.google','googleapis','google.com','schemas.org',
+      'schema.org','w3.org','openstreetmap','facebook','twitter','linkedin','instagram',
+      'youtube','gstatic','gravatar','wp-content','wp-includes','cdn.','ajax.'];
+
+    const pageUrls=allMatches.filter(u=>{
+      try{
+        // Clean trailing punctuation
+        const clean=u.replace(/[.,;:!?)\]]+$/,'');
+        new URL(clean);
+        const lower=clean.toLowerCase();
+        if(excluded.some(e=>lower.includes(e))) return false;
+        return true;
+      }catch{return false;}
+    }).map(u=>u.replace(/[.,;:!?)\]]+$/,'')); // strip trailing punctuation
+
+    // Deduplicate
+    const unique=[...new Set(pageUrls)].slice(0,50);
+    docCache[docId]=unique.length?unique:null;
     return docCache[docId];
-  }catch(e){return null;}
+  }catch(e){docCache[docId]=null;return null;}
 }
 
 // ── Utilities ─────────────────────────────────────────
