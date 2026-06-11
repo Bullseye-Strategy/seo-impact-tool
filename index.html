@@ -448,12 +448,17 @@ async function readSheetTasks(sheetId,domain){
     const allTasks=[];
     for(const tab of tabNames){
       const tabLower=tab.toLowerCase();
-      // Only read tabs that belong to this domain
+      // Skip obviously irrelevant tabs (keyword research, ranking data etc)
+      const skipTabs=['ranking now','interactive video','competitive kw','keyword research','ranking','keywords'];
+      if(skipTabs.some(s=>tabLower.includes(s))) continue;
+      // For shared sheets (multiple clients), filter by domain root in tab name
+      // But if the sheet was manually linked for this client, read all task tabs
       const domainRoot=domain.split('.')[0].toLowerCase();
-      // Special case: "cruise cheap" vs "cruisecheap"
       const altRoot=domainRoot.replace(/[^a-z]/g,'');
       const tabClean=tabLower.replace(/[^a-z]/g,'');
-      if(!tabClean.includes(altRoot)&&!tabLower.includes(domainRoot)) continue;
+      const isSharedSheet=['1g1SEE8F3FApujSxrkFgEH8nnNYb2Cct2qfFcYPFzr7o'].includes(sheetId);
+      // For shared sheets, filter by domain; for manually linked sheets, read all tabs
+      if(isSharedSheet&&!tabClean.includes(altRoot)&&!tabLower.includes(domainRoot)) continue;
 
       try{
         const enc=encodeURIComponent(`'${tab}'!A1:E500`);
