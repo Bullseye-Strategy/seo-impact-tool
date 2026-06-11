@@ -1108,6 +1108,34 @@ async function renderImpact(){
         return{url,bC:br.clicks||0,aC:ar.clicks,dc,dp,aP:ar.position?.toFixed(1)};
       }).sort((a,b)=>b.aC-a.aC):[];
 
+    // Build per-URL rows — always shown, not collapsed
+    const urlRowsHtml=pageRows.length?`
+      <div class="page-rows" style="margin-top:12px">
+        <div class="page-row hdr">
+          <span>URL</span>
+          <span class="pval">Clicks before</span>
+          <span class="pval">Clicks after</span>
+          <span class="pval">Δ Clicks</span>
+          <span class="pval">Pos shift</span>
+          <span class="pval">Pos after</span>
+        </div>
+        ${pageRows.map(r=>`<div class="page-row">
+          <a class="purl" href="${r.url}" target="_blank" title="${r.url}">${r.url.replace(/https?:\/\/(www\.)?/,'')}</a>
+          <span class="pval">${r.bC.toLocaleString()}</span>
+          <span class="pval">${r.aC.toLocaleString()}</span>
+          <span class="pval ${r.dc>=0?'up':'down'}">${r.dc>=0?'+':''}${r.dc.toLocaleString()}</span>
+          <span class="pval ${r.dp&&parseFloat(r.dp)>0?'up':''}">${r.dp!==null?(parseFloat(r.dp)>0?'+':'')+r.dp:'—'}</span>
+          <span class="pval">${r.aP||'—'}</span>
+        </div>`).join('')}
+      </div>`
+    // Single published URL — show it inline without a table
+    :urls.length===1?`
+      <div style="margin-top:10px;padding:8px 12px;background:var(--bg2);border-radius:var(--r);font-size:12px;display:flex;align-items:center;gap:8px">
+        <span style="color:var(--text3)">URL:</span>
+        <a href="${urls[0]}" target="_blank" style="color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${urls[0].replace(/https?:\/\/(www\.)?/,'')}</a>
+      </div>`
+    :'';
+
     el2.innerHTML=`
       <div class="igrid">
         <div><div class="ilabel">Clicks before (${daysBefore}d)</div><div class="ival">${b.clicks.toLocaleString()}</div></div>
@@ -1115,20 +1143,9 @@ async function renderImpact(){
         <div><div class="ilabel">Avg. position shift</div><div class="ival ${dPos&&parseFloat(dPos)>0?'up':''}">${dPos!==null?(parseFloat(dPos)>0?'+':'')+dPos+' pos':'—'}</div></div>
         <div><div class="ilabel">Impressions before</div><div class="ival">${b.impressions.toLocaleString()}</div></div>
         <div><div class="ilabel">Impressions after</div><div class="ival ${dImpr>=0?'up':'down'}">${a.impressions.toLocaleString()}</div></div>
-        <div><div class="ilabel">${urls.length?'Pages tracked':'Data scope'}</div><div class="ival" style="font-size:13px">${urls.length?urls.length+' pages':'Site-wide'}</div></div>
+        <div><div class="ilabel">${urls.length?'Pages tracked':'Data scope'}</div><div class="ival" style="font-size:13px">${urls.length?urls.length+' page'+(urls.length>1?'s':''):'Site-wide'}</div></div>
       </div>
-      ${pageRows.length?`
-        <button class="expand-btn" onclick="togglePages(this)">▶ Show page breakdown (${pageRows.length} pages)</button>
-        <div class="page-rows" style="display:none">
-          <div class="page-row hdr"><span>Page</span><span class="pval">Before</span><span class="pval">After</span><span class="pval">Δ Clicks</span><span class="pval">Pos shift</span><span class="pval">Pos after</span></div>
-          ${pageRows.map(r=>`<div class="page-row">
-            <a class="purl" href="${r.url}" target="_blank" title="${r.url}">${r.url.replace(/https?:\/\/(www\.)?/,'')}</a>
-            <span class="pval">${r.bC}</span><span class="pval">${r.aC}</span>
-            <span class="pval ${r.dc>=0?'up':'down'}">${r.dc>=0?'+':''}${r.dc}</span>
-            <span class="pval ${r.dp&&parseFloat(r.dp)>0?'up':''}">${r.dp!==null?(parseFloat(r.dp)>0?'+':'')+r.dp:'—'}</span>
-            <span class="pval">${r.aP||'—'}</span>
-          </div>`).join('')}
-        </div>`:''}
+      ${urlRowsHtml}
       ${!urls.length?`<div style="margin-top:6px;font-size:11px;color:var(--text3)">No deliverable doc linked — showing site-wide GSC data.</div>`:''}`;
   }
 }
