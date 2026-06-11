@@ -483,26 +483,57 @@ async function readSheetTasks(sheetId,domain){
 }
 
 function parseRows(rows,tabName){
-  if(rows.length<2) return [];
-  // Find header row
-  let hIdx=0;
-  for(let i=0;i<Math.min(rows.length,5);i++){
-    if((rows[i]||[]).some(c=>(c||'').toLowerCase().includes('task'))){hIdx=i;break;}
+  if(!rows||rows.length<2) return [];
+
+  // Find header row — look for row containing "task" in any cell
+  // Search up to row 10 to handle blank leading rows or merged headers
+  let hIdx=-1;
+  for(let i=0;i<Math.min(rows.length,10);i++){
+    const r=rows[i]||[];
+    if(r.some(c=>(c||'').toLowerCase().trim()==='task')){hIdx=i;break;}
   }
-  const header=(rows[hIdx]||[]).map(c=>(c||'').toLowerCase());
-  const cTask=header.findIndex(c=>c.includes('task'));
-  const cLink=header.findIndex(c=>c.includes('link'));
-  const cDel=header.findIndex(c=>c.includes('deliver'));
-  const cNotes=Math.max(header.findIndex(c=>c.includes('note')),4);
-  if(cTask<0) return [];
+  // Fallback: find row where first non-empty cell looks like a column header
+  if(hIdx<0){
+    for(let i=0;i<Math.min(rows.length,10);i++){
+      const r=rows[i]||[];
+      const first=(r[0]||'').toLowerCase().trim();
+      if(first==='task'||first==='tasks'){hIdx=i;break;}
+    }
+  }
+  // Last resort: just use first non-empty row as header
+  if(hIdx<0){
+    for(let i=0;i<Math.min(rows.length,5);i++){
+      if((rows[i]||[]).some(c=>c&&c.trim())){hIdx=i;break;}
+    }
+  }
+  if(hIdx<0) return [];
+
+  const header=(rows[hIdx]||[]).map(c=>(c||'').toLowerCase().trim());
+
+  // Find column indices
+  let cTask=header.findIndex(c=>c==='task'||c==='tasks');
+  if(cTask<0) cTask=header.findIndex(c=>c.includes('task'));
+  if(cTask<0) cTask=0; // default to first column
+
+  let cLink=header.findIndex(c=>c==='link'||c==='links');
+  if(cLink<0) cLink=header.findIndex(c=>c.includes('link'));
+  if(cLink<0) cLink=1;
+
+  let cDel=header.findIndex(c=>c.includes('deliver'));
+  if(cDel<0) cDel=2;
+
+  let cNotes=header.findIndex(c=>c.includes('note'));
+  if(cNotes<0) cNotes=4;
 
   const tasks=[];
   for(let i=hIdx+1;i<rows.length;i++){
     const r=rows[i]||[];
     const task=(r[cTask]||'').trim();
-    if(!task||task.toLowerCase()==='task') continue;
-    const link=(cLink>=0?r[cLink]:'').trim()||'';
-    const delivered=parseDate(cDel>=0?r[cDel]:'');
+    if(!task) continue;
+    // Skip rows that look like sub-headers or section breaks
+    if(task.toLowerCase()==='task'||task.toLowerCase()==='tasks') continue;
+    const link=(r[cLink]||'').trim();
+    const delivered=parseDate(r[cDel]||'');
     const notes=(r[cNotes]||'').trim();
     tasks.push({task,link,delivered,notes,tabName,type:inferType(task)});
   }
